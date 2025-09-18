@@ -49,7 +49,9 @@ def allowed_file(filename):
 
 def get_db_connection():
     """Get database connection - PostgreSQL for production, MySQL for development"""
-    database_url = os.environ.get('DATABASE_URL')
+    
+    database_url = database_url.replace("postgres://", "postgresql://")
+
     
     if database_url:
         # Production - PostgreSQL on Render
