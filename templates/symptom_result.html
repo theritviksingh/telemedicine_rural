@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symptom Analysis Results - Telemedicine Rural Nabha</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #60a5fa;
+            --secondary: #10b981;
+            --secondary-dark: #059669;
+            --secondary-light: #34d399;
+            --success: #22c55e;
+            --success-light: #86efac;
+            --warning: #f59e0b;
+            --warning-light: #fcd34d;
+            --danger: #ef4444;
+            --danger-light: #fca5a5;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary-light));
+            min-height: 100vh;
+        }
+
+        .heading-font {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            transform: translateY(0);
+            border: none;
+            cursor: pointer;
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            transform: translateY(0);
+            border: none;
+            cursor: pointer;
+        }
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .urgency-low {
+            background-color: #dcfce7;
+            color: #166534;
+            border-color: #bbf7d0;
+        }
+
+        .urgency-medium {
+            background-color: #fef3c7;
+            color: #92400e;
+            border-color: #fde68a;
+        }
+
+        .urgency-high {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border-color: #fecaca;
+        }
+
+        .condition-card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+
+        .condition-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .probability-bar {
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            background-color: #e5e7eb;
+        }
+
+        .probability-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        /* Google Translate Widget Styling */
+        .google-translate-container {
+            display: inline-block;
+        }
+
+        .google-translate-container select {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            color: #374151;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .google-translate-container select:hover {
+            border-color: #3b82f6;
+        }
+
+        .google-translate-container select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Hide Google Translate banner */
+        .goog-te-banner-frame {
+            display: none !important;
+        }
+
+        body {
+            top: 0 !important;
+        }
+
+        .goog-te-menu-value span:first-child {
+            display: none;
+        }
+
+        .goog-te-menu-value:before {
+            content: 'Translate';
+            color: #374151;
+        }
+
+        .goog-te-menu-frame {
+            border-radius: 0.5rem !important;
+            border: 1px solid #e2e8f0 !important;
+            z-index: 999999 !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+            max-height: 200px !important;
+            overflow-y: auto !important;
+        }
+        
+        .goog-te-menu-frame .goog-te-menu2 {
+            background: white !important;
+            border-radius: 0.5rem !important;
+        }
+        
+        /* Fix z-index issues with navbar and Google Translate */
+        nav {
+            position: relative !important;
+            z-index: 10002 !important;
+        }
+        
+        /* Fix Google Translate widget positioning */
+        #google_translate_element {
+            position: relative !important;
+            z-index: 10001 !important;
+        }
+        
+        /* Prevent Google Translate from affecting navbar layout */
+        .goog-te-gadget {
+            font-size: 0 !important;
+            line-height: 0 !important;
+        }
+        
+        .goog-te-gadget > span {
+            vertical-align: top !important;
+        }
+        
+        .goog-te-gadget .goog-te-combo {
+            margin: 0 !important;
+            vertical-align: top !important;
+        }
+    </style>
+</head>
+<body class="p-4">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg rounded-lg mb-6 animate-fade-in">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center">
+                        <svg class="w-8 h-8 text-primary mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <h1 class="heading-font text-xl font-bold text-gray-900">Analysis Results</h1>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- Google Translate Widget -->
+                    <div class="google-translate-container">
+                        <div id="google_translate_element"></div>
+                    </div>
+                    <a href="/check" class="text-primary hover:text-primary-dark font-medium transition-colors">New Check</a>
+                    <a href="/symptom-history" class="text-primary hover:text-primary-dark font-medium transition-colors">History</a>
+                    <a href="/dashboard" class="text-primary hover:text-primary-dark font-medium transition-colors">Dashboard</a>
+                    <a href="/logout" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8 animate-fade-in">
+            <h2 class="heading-font text-3xl font-bold text-white mb-4">Symptom Analysis Complete</h2>
+            <p class="text-white/80 text-lg">Based on your symptoms, here are the possible conditions and recommendations</p>
+        </div>
+
+        <!-- Error Section -->
+        {% if error %}
+        <div class="bg-red-50 border border-red-200 rounded-2xl p-8 mb-8 animate-fade-in">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <svg class="h-8 w-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <h3 class="heading-font text-xl font-bold text-red-800 mb-2">Analysis Error</h3>
+                    <p class="text-red-700 mb-4">{{ error }}</p>
+                    <a href="/check" class="btn-primary inline-flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        Try Again
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Success Results -->
+        {% if results %}
+        <!-- Patient Info Summary -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 mb-8 animate-fade-in">
+            <h3 class="heading-font text-xl font-bold text-gray-900 mb-4">Analysis Summary</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="text-sm text-gray-600">Age Group</div>
+                    <div class="text-lg font-semibold text-gray-900">{{ results.age }}</div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="text-sm text-gray-600">Gender</div>
+                    <div class="text-lg font-semibold text-gray-900 capitalize">{{ results.gender }}</div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="text-sm text-gray-600">Analysis Date</div>
+                    <div class="text-lg font-semibold text-gray-900">{{ results.timestamp.strftime('%B %d, %Y') if results.timestamp else 'Today' }}</div>
+                </div>
+            </div>
+            
+            <div class="mt-6">
+                <h4 class="text-lg font-semibold text-gray-900 mb-2">Reported Symptoms</h4>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p class="text-gray-800">{{ results.symptoms }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Possible Conditions -->
+        <div class="space-y-6">
+            <h3 class="heading-font text-2xl font-bold text-white text-center mb-6">Possible Conditions</h3>
+            
+            {% for condition in results.conditions %}
+            <div class="condition-card p-6 animate-fade-in">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex-1">
+                        <h4 class="heading-font text-xl font-bold text-gray-900 mb-2">{{ condition.name }}</h4>
+                        <div class="flex items-center mb-3">
+                            <span class="text-sm font-medium text-gray-600 mr-3">Probability:</span>
+                            <div class="flex-1 max-w-xs">
+                                <div class="probability-bar">
+                                    <div class="probability-fill bg-gradient-to-r from-blue-500 to-green-500" style="width: {{ condition.probability }}%"></div>
+                                </div>
+                            </div>
+                            <span class="ml-3 text-lg font-bold text-gray-900">{{ condition.probability }}%</span>
+                        </div>
+                    </div>
+                    <div class="ml-4">
+                        {% if condition.urgency == 'high' %}
+                        <span class="urgency-high px-3 py-1 rounded-full text-sm font-medium border">High Priority</span>
+                        {% elif condition.urgency == 'medium' %}
+                        <span class="urgency-medium px-3 py-1 rounded-full text-sm font-medium border">Medium Priority</span>
+                        {% else %}
+                        <span class="urgency-low px-3 py-1 rounded-full text-sm font-medium border">Low Priority</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="text-gray-700 leading-relaxed">
+                    <p>{{ condition.description }}</p>
+                </div>
+
+                {% if condition.recommendations %}
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <h5 class="font-semibold text-gray-900 mb-2">Recommendations:</h5>
+                    <ul class="space-y-1 text-gray-700">
+                        {% for rec in condition.recommendations %}
+                        <li class="flex items-start">
+                            <svg class="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            {{ rec }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="mt-8 bg-white/10 backdrop-blur-sm rounded-2xl p-6 animate-fade-in">
+            <div class="flex items-start">
+                <svg class="w-6 h-6 text-white mr-3 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.19 2.5 1.732 2.5z"></path>
+                </svg>
+                <div>
+                    <h4 class="text-white font-semibold mb-2">Important Medical Disclaimer</h4>
+                    <p class="text-white/90 text-sm leading-relaxed">
+                        This analysis is for informational purposes only and should not replace professional medical advice, diagnosis, or treatment. 
+                        Always seek the advice of qualified healthcare providers with any questions regarding your health condition.
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- For alternative format (if using old structure) -->
+        {% if conditions %}
+        <!-- User Input Summary -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6 animate-fade-in">
+            <h2 class="heading-font text-xl font-semibold mb-4">Your Information</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-sm text-gray-500">Age Group</p>
+                    <p class="font-medium text-gray-900">{{ age }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Gender</p>
+                    <p class="font-medium text-gray-900">{{ gender }}</p>
+                </div>
+                <div class="md:col-span-2">
+                    <p class="text-sm text-gray-500">Reported Symptoms</p>
+                    <p class="font-medium text-gray-900">{{ symptoms }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="space-y-6">
+            {% for condition in conditions %}
+            <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 animate-fade-in">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h3 class="heading-font text-xl font-semibold text-gray-900">{{ condition.name }}</h3>
+                        <div class="mt-2">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ condition.urgency_class }}">
+                                {{ condition.urgency }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-2xl font-bold text-primary">{{ condition.probability }}%</span>
+                        <p class="text-sm text-gray-500">Match</p>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <p class="text-gray-600">{{ condition.explanation }}</p>
+                </div>
+
+                {% if condition.recommendations %}
+                <div class="mt-4 p-4 bg-blue-50 rounded-lg">
+                    <h4 class="font-medium text-blue-900 mb-2">Recommendations</h4>
+                    <ul class="list-disc list-inside text-blue-800 text-sm space-y-1">
+                        {% for rec in condition.recommendations %}
+                        <li>{{ rec }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap justify-center gap-4 mt-8">
+            <a href="/check" class="btn-primary inline-flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+                New Analysis
+            </a>
+            <a href="/symptom-history" class="btn-secondary inline-flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                View History
+            </a>
+            <a href="/dashboard" class="bg-white hover:bg-gray-50 text-gray-900 font-medium px-6 py-3 rounded-lg border border-gray-300 transition-colors inline-flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Google Translate Script -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement(
+                {
+                    pageLanguage: 'en',
+                    includedLanguages: 'hi,pa,en,ur,bn,ta,te,ml,kn,gu,mr,or,as,ne',
+                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                    autoDisplay: false
+                }, 
+                'google_translate_element'
+            );
+            
+            // Restore saved language preference
+            setTimeout(function() {
+                restoreSelectedLanguage();
+                monitorLanguageChanges();
+            }, 1000);
+        }
+
+        function saveSelectedLanguage() {
+            var selectElement = document.querySelector('.goog-te-combo');
+            if (selectElement && selectElement.value) {
+                localStorage.setItem('googtrans', '/en/' + selectElement.value);
+                localStorage.setItem('selectedLanguage', selectElement.value);
+                console.log('Language saved:', selectElement.value);
+            }
+        }
+
+        function restoreSelectedLanguage() {
+            var savedLanguage = localStorage.getItem('selectedLanguage');
+            var selectElement = document.querySelector('.goog-te-combo');
+            
+            if (savedLanguage && selectElement) {
+                selectElement.value = savedLanguage;
+                selectElement.dispatchEvent(new Event('change'));
+                console.log('Language restored:', savedLanguage);
+            }
+        }
+
+        function monitorLanguageChanges() {
+            var selectElement = document.querySelector('.goog-te-combo');
+            if (selectElement) {
+                selectElement.addEventListener('change', function() {
+                    saveSelectedLanguage();
+                });
+            }
+        }
+
+        // Hide Google Translate banner
+        function hideGoogleTranslateBanner() {
+            var banner = document.querySelector('.goog-te-banner-frame');
+            if (banner) {
+                banner.style.display = 'none';
+            }
+            document.body.style.top = '0px';
+        }
+
+        // Check for banner periodically
+        setInterval(hideGoogleTranslateBanner, 100);
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>

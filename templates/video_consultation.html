@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Consultation - Telemedicine Rural Nabha</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #60a5fa;
+            --secondary: #10b981;
+            --secondary-dark: #059669;
+            --secondary-light: #34d399;
+            --success: #22c55e;
+            --success-light: #86efac;
+            --warning: #f59e0b;
+            --warning-light: #fcd34d;
+            --danger: #ef4444;
+            --danger-light: #fca5a5;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary-light));
+            min-height: 100vh;
+        }
+
+        .heading-font {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .doctor-card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+        }
+
+        .doctor-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .doctor-avatar {
+            width: 4rem;
+            height: 4rem;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .specialty-badge {
+            background: var(--secondary-light);
+            color: var(--secondary-dark);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-chat {
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .btn-chat:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.4);
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Google Translate Widget Styling */
+        .google-translate-container {
+            display: inline-block;
+        }
+
+        .google-translate-container select {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            color: #374151;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .google-translate-container select:hover {
+            border-color: #3b82f6;
+        }
+
+        .google-translate-container select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Hide Google Translate banner */
+        .goog-te-banner-frame {
+            display: none !important;
+        }
+
+        body {
+            top: 0 !important;
+        }
+
+        .goog-te-menu-value span:first-child {
+            display: none;
+        }
+
+        .goog-te-menu-value:before {
+            content: 'Translate';
+            color: #374151;
+        }
+
+        .goog-te-menu-frame {
+            border-radius: 0.5rem !important;
+            border: 1px solid #e2e8f0 !important;
+            z-index: 999999 !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+            max-height: 200px !important;
+            overflow-y: auto !important;
+        }
+        
+        .goog-te-menu-frame .goog-te-menu2 {
+            background: white !important;
+            border-radius: 0.5rem !important;
+        }
+        
+        /* Fix z-index issues with navbar and Google Translate */
+        nav {
+            position: relative !important;
+            z-index: 10002 !important;
+        }
+        
+        /* Fix Google Translate widget positioning */
+        #google_translate_element {
+            position: relative !important;
+            z-index: 10001 !important;
+        }
+        
+        /* Prevent Google Translate from affecting navbar layout */
+        .goog-te-gadget {
+            font-size: 0 !important;
+            line-height: 0 !important;
+        }
+        
+        .goog-te-gadget > span {
+            vertical-align: top !important;
+        }
+        
+        .goog-te-gadget .goog-te-combo {
+            margin: 0 !important;
+            vertical-align: top !important;
+        }
+    </style>
+</head>
+<body class="p-4">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg rounded-lg mb-6 animate-fade-in">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center">
+                        <svg class="w-8 h-8 text-primary mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        <h1 class="heading-font text-xl font-bold text-gray-900">Video Consultation</h1>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- Google Translate Widget -->
+                    <div class="google-translate-container">
+                        <div id="google_translate_element"></div>
+                    </div>
+                    
+                    <a href="/profile" class="text-primary hover:text-primary-dark font-medium transition-colors">Profile</a>
+                    <a href="/dashboard" class="text-primary hover:text-primary-dark font-medium transition-colors">Dashboard</a>
+                    <a href="/logout" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8 animate-fade-in">
+            <h2 class="heading-font text-3xl font-bold text-white mb-4">Select a Doctor for Consultation</h2>
+            <p class="text-white/80 text-lg">Connect with healthcare professionals through secure video calls</p>
+        </div>
+
+        <!-- Doctors Grid -->
+        {% if doctors %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {% for doctor in doctors %}
+            <div class="doctor-card animate-fade-in">
+                <div class="p-6">
+                    <!-- Doctor Avatar and Name -->
+                    <div class="flex items-center mb-4">
+                        <div class="doctor-avatar mr-4">
+                            {{ doctor.name[0] if doctor.name else doctor.username[0] }}
+                        </div>
+                        <div>
+                            <h3 class="heading-font text-xl font-semibold text-gray-900">{{ doctor.name or doctor.username }}</h3>
+                            {% if doctor.specialist %}
+                            <span class="specialty-badge">{{ doctor.specialist }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Doctor Details -->
+                    <div class="space-y-3 mb-6">
+                        {% if doctor.email %}
+                        <div class="flex items-center text-gray-600">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            {{ doctor.email }}
+                        </div>
+                        {% endif %}
+
+                        {% if doctor.description %}
+                        <div class="text-gray-700">
+                            <p class="text-sm leading-relaxed">{{ doctor.description }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Chat Button -->
+                    <button onclick="window.location.href='/chat/{{ doctor.username }}'" class="btn-chat">
+                        <div class="flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                            </svg>
+                            Start Chat
+                        </div>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <!-- No Doctors Available -->
+        <div class="bg-white rounded-2xl shadow-2xl p-12 text-center animate-fade-in">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-6">
+                <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+            </div>
+            <h3 class="heading-font text-2xl font-bold text-gray-900 mb-4">No Doctors Available</h3>
+            <p class="text-gray-600 mb-6">There are currently no doctors available for consultation. Please check back later or contact support.</p>
+        </div>
+        {% endif %}
+
+        <!-- Back to Dashboard -->
+        <div class="text-center mt-8">
+            <a href="/dashboard" class="inline-flex items-center px-6 py-3 bg-white hover:bg-gray-50 text-gray-900 font-medium rounded-lg transition duration-200 transform hover:translate-y-[-1px] hover:shadow-lg border border-gray-300">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Google Translate Script -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement(
+                {
+                    pageLanguage: 'en',
+                    includedLanguages: 'hi,pa,en,ur,bn,ta,te,ml,kn,gu,mr,or,as,ne',
+                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                    autoDisplay: false
+                }, 
+                'google_translate_element'
+            );
+            
+            // Restore saved language preference
+            setTimeout(function() {
+                restoreSelectedLanguage();
+                monitorLanguageChanges();
+            }, 1000);
+        }
+
+        function saveSelectedLanguage() {
+            var selectElement = document.querySelector('.goog-te-combo');
+            if (selectElement && selectElement.value) {
+                localStorage.setItem('googtrans', '/en/' + selectElement.value);
+                localStorage.setItem('selectedLanguage', selectElement.value);
+                console.log('Language saved:', selectElement.value);
+            }
+        }
+
+        function restoreSelectedLanguage() {
+            var savedLanguage = localStorage.getItem('selectedLanguage');
+            var selectElement = document.querySelector('.goog-te-combo');
+            
+            if (savedLanguage && selectElement) {
+                selectElement.value = savedLanguage;
+                selectElement.dispatchEvent(new Event('change'));
+                console.log('Language restored:', savedLanguage);
+            }
+        }
+
+        function monitorLanguageChanges() {
+            var selectElement = document.querySelector('.goog-te-combo');
+            if (selectElement) {
+                selectElement.addEventListener('change', function() {
+                    saveSelectedLanguage();
+                });
+            }
+        }
+
+        // Hide Google Translate banner
+        function hideGoogleTranslateBanner() {
+            var banner = document.querySelector('.goog-te-banner-frame');
+            if (banner) {
+                banner.style.display = 'none';
+            }
+            document.body.style.top = '0px';
+        }
+
+        // Check for banner periodically
+        setInterval(hideGoogleTranslateBanner, 100);
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>

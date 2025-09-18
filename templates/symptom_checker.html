@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Symptom Checker - Telemedicine Rural Nabha</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Main Colors */
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #60a5fa;
+            --secondary: #10b981;
+            --secondary-dark: #059669;
+            --secondary-light: #34d399;
+            
+            /* Status Colors */
+            --success: #22c55e;
+            --success-light: #86efac;
+            --warning: #f59e0b;
+            --warning-light: #fcd34d;
+            --danger: #ef4444;
+            --danger-light: #fca5a5;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary-light));
+            min-height: 100vh;
+        }
+
+        .heading-font {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            transition: all 0.2s;
+        }
+        .form-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            border-color: var(--primary);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            transform: translateY(0);
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Google Translate Widget Styling */
+        .google-translate-container {
+            display: inline-block;
+        }
+
+        .google-translate-container select {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            color: #374151;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .google-translate-container select:hover {
+            border-color: #3b82f6;
+        }
+
+        .google-translate-container select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Hide Google Translate banner */
+        .goog-te-banner-frame {
+            display: none !important;
+        }
+
+        body {
+            top: 0 !important;
+        }
+
+        .goog-te-menu-value span:first-child {
+            display: none;
+        }
+
+        .goog-te-menu-value:before {
+            content: 'Translate';
+            color: #374151;
+        }
+
+        .goog-te-menu-frame {
+            border-radius: 0.5rem !important;
+            border: 1px solid #e2e8f0 !important;
+            z-index: 999999 !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+            max-height: 200px !important;
+            overflow-y: auto !important;
+        }
+        
+        .goog-te-menu-frame .goog-te-menu2 {
+            background: white !important;
+            border-radius: 0.5rem !important;
+        }
+        
+        /* Fix z-index issues with navbar and Google Translate */
+        nav {
+            position: relative !important;
+            z-index: 10002 !important;
+        }
+        
+        /* Fix Google Translate widget positioning */
+        #google_translate_element {
+            position: relative !important;
+            z-index: 10001 !important;
+        }
+        
+        /* Prevent Google Translate from affecting navbar layout */
+        .goog-te-gadget {
+            font-size: 0 !important;
+            line-height: 0 !important;
+        }
+        
+        .goog-te-gadget > span {
+            vertical-align: top !important;
+        }
+        
+        .goog-te-gadget .goog-te-combo {
+            margin: 0 !important;
+            vertical-align: top !important;
+        }
+    </style>
+</head>
+<body class="p-4">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg rounded-lg mb-6 animate-fade-in">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center">
+                        <svg class="w-8 h-8 text-primary mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <h1 class="heading-font text-xl font-bold text-gray-900">AI Symptom Checker</h1>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- Google Translate Widget -->
+                    <div class="google-translate-container">
+                        <div id="google_translate_element"></div>
+                    </div>
+                    <a href="/dashboard" class="text-primary hover:text-primary-dark font-medium transition-colors">Dashboard</a>
+                    <a href="/symptom-history" class="text-primary hover:text-primary-dark font-medium transition-colors">History</a>
+                    <a href="/logout" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8 animate-fade-in">
+            <h2 class="heading-font text-3xl font-bold text-white mb-4">AI-Powered Health Analysis</h2>
+            <p class="text-white/80 text-lg max-w-2xl mx-auto">Get preliminary insights about your symptoms using our advanced AI system. Provide detailed information for the most accurate assessment.</p>
+            <div class="mt-6 inline-block">
+                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-yellow-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.19 2.5 1.732 2.5z"></path>
+                        </svg>
+                        <p class="text-yellow-800 text-sm font-medium">Demo Mode Active - For full functionality, configure Infermedica API credentials</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Form -->
+        <div class="bg-white rounded-2xl shadow-2xl p-8 animate-fade-in">
+            <form action="/check" method="POST" class="space-y-8">
+                <!-- Symptoms Input -->
+                <div>
+                    <label for="symptoms" class="block text-lg font-semibold text-gray-800 mb-3">Describe Your Symptoms</label>
+                    <textarea 
+                        name="symptoms" 
+                        id="symptoms" 
+                        rows="5" 
+                        class="form-input text-base" 
+                        placeholder="Please describe your symptoms in detail. For example: 'I have been experiencing high fever (101°F), severe headache, and body aches for the past 2 days. The headache is throbbing and gets worse with light.'"
+                        required></textarea>
+                    <p class="mt-2 text-sm text-gray-600 flex items-center">
+                        <svg class="w-4 h-4 mr-1 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Include timing, severity, and any triggers for more accurate results
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Age Selection -->
+                    <div>
+                        <label for="age" class="block text-lg font-semibold text-gray-800 mb-3">Age Group</label>
+                        <select name="age" id="age" class="form-input text-base" required>
+                            <option value="">Select your age group</option>
+                            <option value="0-2">Infant (0-2 years)</option>
+                            <option value="3-12">Child (3-12 years)</option>
+                            <option value="13-18">Teenager (13-18 years)</option>
+                            <option value="19-30">Young Adult (19-30 years)</option>
+                            <option value="31-45">Adult (31-45 years)</option>
+                            <option value="46-60">Middle Age (46-60 years)</option>
+                            <option value="60+">Senior (60+ years)</option>
+                        </select>
+                    </div>
+
+                    <!-- Gender Selection -->
+                    <div>
+                        <label for="gender" class="block text-lg font-semibold text-gray-800 mb-3">Gender</label>
+                        <select name="gender" id="gender" class="form-input text-base" required>
+                            <option value="">Select gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center pt-6">
+                    <button type="submit" class="btn-primary text-lg px-8 py-4 inline-flex items-center gap-3">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Analyze Symptoms
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="mt-8 bg-white/10 backdrop-blur-sm rounded-lg p-6 text-center animate-fade-in">
+            <div class="flex items-center justify-center mb-3">
+                <svg class="w-6 h-6 text-white mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.19 2.5 1.732 2.5z"></path>
+                </svg>
+                <h3 class="text-white font-semibold">Important Medical Disclaimer</h3>
+            </div>
+            <p class="text-white/80 text-sm leading-relaxed">
+                This AI symptom checker is for informational purposes only and does not replace professional medical advice. 
+                Always consult with qualified healthcare providers for proper diagnosis and treatment.
+            </p>
+        </div>
+
+        <!-- Back Link -->
+        <div class="text-center mt-6">
+            <a href="/dashboard" class="inline-flex items-center text-white hover:text-white/80 transition-colors font-medium">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center">
+        <div class="bg-white p-6 rounded-lg shadow-xl flex items-center">
+            <svg class="animate-spin h-6 w-6 text-primary mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="text-gray-700">Analyzing symptoms...</span>
+        </div>
+    </div>
+
+    <script>
+        document.querySelector('form').addEventListener('submit', function() {
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+            document.getElementById('loadingOverlay').classList.add('flex');
+        });
+    </script>
+
+    <!-- Google Translate Script -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement(
+                {
+                    pageLanguage: 'en',
+                    includedLanguages: 'hi,pa,en,ur,bn,ta,te,ml,kn,gu,mr,or,as,ne',
+                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                    autoDisplay: false
+                }, 
+                'google_translate_element'
+            );
+            
+            // Restore saved language preference
+            setTimeout(function() {
+                restoreSelectedLanguage();
+                monitorLanguageChanges();
+            }, 1000);
+        }
+
+        function saveSelectedLanguage() {
+            var selectElement = document.querySelector('.goog-te-combo');
+            if (selectElement && selectElement.value) {
+                localStorage.setItem('googtrans', '/en/' + selectElement.value);
+                localStorage.setItem('selectedLanguage', selectElement.value);
+                console.log('Language saved:', selectElement.value);
+            }
+        }
+
+        function restoreSelectedLanguage() {
+            var savedLanguage = localStorage.getItem('selectedLanguage');
+            var selectElement = document.querySelector('.goog-te-combo');
+            
+            if (savedLanguage && selectElement) {
+                selectElement.value = savedLanguage;
+                selectElement.dispatchEvent(new Event('change'));
+                console.log('Language restored:', savedLanguage);
+            }
+        }
+
+        function monitorLanguageChanges() {
+            var selectElement = document.querySelector('.goog-te-combo');
+            if (selectElement) {
+                selectElement.addEventListener('change', function() {
+                    saveSelectedLanguage();
+                });
+            }
+        }
+
+        // Hide Google Translate banner
+        function hideGoogleTranslateBanner() {
+            var banner = document.querySelector('.goog-te-banner-frame');
+            if (banner) {
+                banner.style.display = 'none';
+            }
+            document.body.style.top = '0px';
+        }
+
+        // Check for banner periodically
+        setInterval(hideGoogleTranslateBanner, 100);
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>

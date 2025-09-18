@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Telemedicine Rural Nabha</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #60a5fa;
+            --secondary: #10b981;
+            --secondary-dark: #059669;
+            --secondary-light: #34d399;
+            --success: #22c55e;
+            --success-light: #86efac;
+            --warning: #f59e0b;
+            --warning-light: #fcd34d;
+            --danger: #ef4444;
+            --danger-light: #fca5a5;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary-light));
+            min-height: 100vh;
+        }
+
+        .heading-font {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .profile-card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .info-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            transition: all 0.2s;
+        }
+
+        .info-item:hover {
+            background: #f1f5f9;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            color: #1f2937;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="p-4">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg rounded-lg mb-6 animate-fade-in">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center">
+                        <svg class="w-8 h-8 text-primary mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        <h1 class="heading-font text-xl font-bold text-gray-900">Telemedicine Rural Nabha</h1>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/dashboard" class="text-primary hover:text-primary-dark font-medium transition-colors">Dashboard</a>
+                    <a href="/logout" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Profile Header -->
+        <div class="profile-card animate-fade-in mb-6">
+            <div class="profile-header">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-white/20 rounded-full mb-4">
+                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                </div>
+                <h2 class="heading-font text-2xl font-bold notranslate">{{ user.name or user.username }}</h2>
+                <p class="text-white/80 capitalize">{{ user.role }} Account</p>
+            </div>
+
+            <!-- Profile Information -->
+            <div class="p-6">
+                <h3 class="heading-font text-xl font-semibold text-gray-900 mb-6">Profile Information</h3>
+
+                <div class="info-grid">
+                    <!-- Basic Information -->
+                    <div class="info-item">
+                        <div class="info-label">Username</div>
+                        <div class="info-value notranslate">{{ user.username }}</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Role</div>
+                        <div class="info-value capitalize">{{ user.role }}</div>
+                    </div>
+
+                    {% if user.name %}
+                    <div class="info-item">
+                        <div class="info-label">Full Name</div>
+                        <div class="info-value notranslate">{{ user.name }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% if user.email %}
+                    <div class="info-item">
+                        <div class="info-label">Email</div>
+                        <div class="info-value notranslate">{{ user.email }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% if user.mobile %}
+                    <div class="info-item">
+                        <div class="info-label">Mobile</div>
+                        <div class="info-value">{{ user.mobile }}</div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Patient-specific information -->
+                    {% if user.role == 'patient' %}
+                        {% if user.date_of_birth %}
+                        <div class="info-item">
+                            <div class="info-label">Date of Birth</div>
+                            <div class="info-value">{{ user.date_of_birth }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if user.gender %}
+                        <div class="info-item">
+                            <div class="info-label">Gender</div>
+                            <div class="info-value">{{ user.gender }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if user.address %}
+                        <div class="info-item">
+                            <div class="info-label">Address</div>
+                            <div class="info-value">{{ user.address }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if user.pin_code %}
+                        <div class="info-item">
+                            <div class="info-label">PIN Code</div>
+                            <div class="info-value">{{ user.pin_code }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if user.health_history %}
+                        <div class="info-item">
+                            <div class="info-label">Health History</div>
+                            <div class="info-value">{{ user.health_history }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if user.emergency_contact_name %}
+                        <div class="info-item">
+                            <div class="info-label">Emergency Contact</div>
+                            <div class="info-value">{{ user.emergency_contact_name }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if user.emergency_contact_number %}
+                        <div class="info-item">
+                            <div class="info-label">Emergency Contact Number</div>
+                            <div class="info-value">{{ user.emergency_contact_number }}</div>
+                        </div>
+                        {% endif %}
+
+                        <div class="info-item">
+                            <div class="info-label">Preferred Language</div>
+                            <div class="info-value">{{ user.preferred_language or 'English' }}</div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Doctor-specific information -->
+                    {% if user.role == 'doctor' %}
+                        {% if user.description %}
+                        <div class="info-item">
+                            <div class="info-label">Description</div>
+                            <div class="info-value">{{ user.description }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if user.specialist %}
+                        <div class="info-item">
+                            <div class="info-label">Specialization</div>
+                            <div class="info-value">{{ user.specialist }}</div>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Back to Dashboard -->
+        <div class="text-center">
+            <a href="/dashboard" class="inline-flex items-center px-6 py-3 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg transition duration-200 transform hover:translate-y-[-1px] hover:shadow-lg">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</body>
+</html></content>

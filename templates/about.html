@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - Telemedicine for Rural Nabha</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg {
+            background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('{{ url_for("static", filename="about.jpg") }}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        
+        /* Google Translate Widget Styling */
+        #google_translate_element {
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        #google_translate_element .goog-te-combo {
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 8px 12px 8px 35px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            outline: none;
+            cursor: pointer;
+            min-width: 140px;
+            height: 38px;
+            text-align: left;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+        
+        #google_translate_element .goog-te-combo:hover {
+            border-color: #2563eb;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        #google_translate_element .goog-te-combo:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        /* Hide only the banner frame - keep functionality */
+        .goog-te-banner-frame {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        
+        /* Hide the top frame that appears when translating */
+        body {
+            top: 0px !important;
+        }
+        
+        /* Prevent Google Translate from adding margin to body */
+        body.translated-ltr {
+            top: 0 !important;
+        }
+        
+        body.translated-rtl {
+            top: 0 !important;
+        }
+        
+        /* Fix z-index issues with navbar and Google Translate */
+        nav {
+            position: relative !important;
+            z-index: 9999 !important;
+        }
+        
+        /* Ensure Google Translate dropdown appears correctly */
+        .goog-te-menu-frame {
+            z-index: 999999 !important;
+            border-radius: 0.5rem !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+            max-height: 200px !important;
+            overflow-y: auto !important;
+        }
+        
+        .goog-te-menu-frame .goog-te-menu2 {
+            background: white !important;
+            border-radius: 0.5rem !important;
+        }
+        
+        /* Ensure translate widget doesn't interfere with layout */
+        .language-selector {
+            position: relative !important;
+            z-index: 10000 !important;
+        }
+        
+        /* Fix Google Translate widget positioning */
+        #google_translate_element {
+            position: relative !important;
+            z-index: 10001 !important;
+        }
+        
+        /* Prevent Google Translate from affecting navbar layout */
+        .goog-te-gadget {
+            font-size: 0 !important;
+            line-height: 0 !important;
+        }
+        
+        .goog-te-gadget > span {
+            vertical-align: top !important;
+        }
+        
+        .goog-te-gadget .goog-te-combo {
+            margin: 0 !important;
+            vertical-align: top !important;
+        }
+        
+        /* Hide notification bar but keep widget functional */
+        .skiptranslate iframe {
+            visibility: hidden !important;
+            height: 0 !important;
+        }
+        
+        /* Hide translate tooltips */
+        .translate-tooltip {
+            display: none !important;
+        }
+        
+        /* Style the Google Translate widget itself */
+        .goog-te-gadget-simple {
+            background-color: transparent !important;
+            border: none !important;
+            font-size: 14px !important;
+            font-family: 'Inter', sans-serif !important;
+            display: inline-block !important;
+        }
+        
+        .goog-te-gadget-simple .goog-te-menu-value {
+            color: #374151 !important;
+            font-weight: 500 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        /* Hide the "Select Language" text but keep dropdown functional */
+        .goog-te-gadget-simple .goog-te-menu-value span:first-child {
+            display: none !important;
+        }
+        
+        /* Keep the actual language text visible */
+        .goog-te-gadget-simple .goog-te-menu-value span:last-child {
+            color: #374151 !important;
+            font-weight: 500 !important;
+        }
+        
+        /* Hide Google Translate icon but keep our custom one */
+        .goog-te-gadget-icon {
+            display: none !important;
+        }
+        
+        /* Ensure the dropdown is clickable */
+        .goog-te-gadget-simple a {
+            text-decoration: none !important;
+            color: #374151 !important;
+        }
+        
+        /* Style the actual dropdown when it appears */
+        .goog-te-combo {
+            background: white !important;
+            border: 1px solid #d1d5db !important;
+            border-radius: 8px !important;
+            padding: 8px 12px 8px 35px !important;
+            font-size: 14px !important;
+            color: #374151 !important;
+            min-width: 140px !important;
+            height: 38px !important;
+        }
+        
+        /* Custom language selector styling */
+        .language-selector {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            vertical-align: middle;
+        }
+        
+        .language-selector::before {
+            content: "🌐";
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            pointer-events: none;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="bg-white">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200 sticky top-0" style="z-index: 10002 !important;">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo Section -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="/" class="flex items-center hover:opacity-80 transition-opacity">
+                        <div class="bg-blue-600 rounded-lg p-2 mr-3">
+                            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="text-lg font-bold text-gray-900">Telemedicine</span>
+                            <span class="hidden sm:inline text-sm text-gray-500 ml-2">Rural Healthcare</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Center Navigation (Desktop) -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="/" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Home</a>
+                    <a href="/about" class="text-blue-600 font-medium border-b-2 border-blue-600">About</a>
+                    <a href="/#features" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Features</a>
+                    <a href="/#testimonials" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Reviews</a>
+                </div>
+
+                <!-- Right Section -->
+                <div class="flex items-center space-x-4">
+                    <!-- Google Translate Widget -->
+                    <div class="language-selector flex items-center">
+                        <div id="google_translate_element" class="hidden md:flex items-center"></div>
+                    </div>
+                    
+                    <a href="/register" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Register</a>
+                    <a href="/login" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">Login</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="gradient-bg py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="mb-8">
+                <div class="inline-flex items-center bg-white/90 backdrop-blur-sm rounded-full px-6 py-3 shadow-lg border border-blue-200">
+                    <svg class="h-6 w-6 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                    <span class="text-blue-800 font-semibold">About Our Mission</span>
+                </div>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-6">
+                Revolutionizing Healthcare in Rural Nabha
+                <span class="block text-2xl md:text-3xl mt-4 font-light text-blue-300">ग्रामीण नाभा में स्वास्थ्य सेवा क्रांति</span>
+            </h1>
+            <p class="text-xl text-gray-100 mb-8 max-w-3xl mx-auto leading-relaxed">
+                Bridging the healthcare gap between rural communities and quality medical care through innovative telemedicine solutions
+            </p>
+            
+            <!-- Hero Images Grid -->
+            <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                <!-- Rural Healthcare Image -->
+                <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-gray-200">
+                    <div class="bg-gradient-to-br from-green-100 to-green-200 rounded-xl h-48 flex items-center justify-center mb-4">
+                        <div class="text-center">
+                            <div class="text-5xl mb-2">🏥</div>
+                            <h3 class="font-semibold text-green-800">Rural Healthcare</h3>
+                            <p class="text-green-600 text-sm">Village Medical Access</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Technology Image -->
+                <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-gray-200">
+                    <div class="bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl h-48 flex items-center justify-center mb-4">
+                        <div class="text-center">
+                            <div class="text-5xl mb-2">💻</div>
+                            <h3 class="font-semibold text-blue-800">Digital Health</h3>
+                            <p class="text-blue-600 text-sm">Telemedicine Platform</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Community Image -->
+                <div class="bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-gray-200">
+                    <div class="bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl h-48 flex items-center justify-center mb-4">
+                        <div class="text-center">
+                            <div class="text-5xl mb-2">👥</div>
+                            <h3 class="font-semibold text-purple-800">Community Care</h3>
+                            <p class="text-purple-600 text-sm">Local Partnerships</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Healthcare Problem Section -->
+    <section class="py-20 bg-red-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-red-800 mb-6">🚨 The Healthcare Problem in Nabha</h2>
+                <p class="text-xl text-red-700 max-w-3xl mx-auto mb-8">Understanding the critical healthcare challenges facing Nabha's rural communities</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                <!-- Problem 1: Access -->
+                <div class="bg-white rounded-2xl p-4 shadow-lg border border-red-200 card-hover">
+                    <div class="bg-red-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                        <span class="text-2xl">🚑</span>
+                    </div>
+                    <h3 class="text-base font-semibold text-gray-900 mb-2 text-center">Limited Healthcare Access</h3>
+                    <p class="text-gray-600 text-center text-sm">Limited access to quality healthcare in Nabha's rural villages and surrounding areas</p>
+                </div>
+
+                <!-- Problem 2: Distance -->
+                <div class="bg-white rounded-2xl p-4 shadow-lg border border-red-200 card-hover">
+                    <div class="bg-red-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                        <span class="text-2xl">🕒</span>
+                    </div>
+                    <h3 class="text-base font-semibold text-gray-900 mb-2 text-center">Long Travel Times</h3>
+                    <p class="text-gray-600 text-center text-sm">Long travel times to hospitals & specialists (20–50 km away) causing delays and expenses</p>
+                </div>
+
+                <!-- Problem 3: Delayed Care -->
+                <div class="bg-white rounded-2xl p-4 shadow-lg border border-red-200 card-hover">
+                    <div class="bg-red-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                        <span class="text-2xl">📉</span>
+                    </div>
+                    <h3 class="text-base font-semibold text-gray-900 mb-2 text-center">Delayed Medical Care</h3>
+                    <p class="text-gray-600 text-center text-sm">Delayed care due to lack of diagnostics & awareness leading to worsened conditions</p>
+                </div>
+
+                <!-- Problem 4: Medicine -->
+                <div class="bg-white rounded-2xl p-4 shadow-lg border border-red-200 card-hover">
+                    <div class="bg-red-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                        <span class="text-2xl">💊</span>
+                    </div>
+                    <h3 class="text-base font-semibold text-gray-900 mb-2 text-center">Medicine Shortages</h3>
+                    <p class="text-gray-600 text-center text-sm">Medicine shortages and limited pharmacy integration in rural areas</p>
+                </div>
+
+                <!-- Problem 5: Language -->
+                <div class="bg-white rounded-2xl p-4 shadow-lg border border-red-200 card-hover">
+                    <div class="bg-red-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                        <span class="text-2xl">🗣️</span>
+                    </div>
+                    <h3 class="text-base font-semibold text-gray-900 mb-2 text-center">Language Barriers</h3>
+                    <p class="text-gray-600 text-center text-sm">Language barriers (Punjabi-speaking patients struggle with Hindi/English medical info)</p>
+                </div>
+
+                <!-- Problem 6: Infrastructure -->
+                <div class="bg-white rounded-2xl p-4 shadow-lg border border-red-200 card-hover">
+                    <div class="bg-red-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
+                        <span class="text-2xl">🏥</span>
+                    </div>
+                    <h3 class="text-base font-semibold text-gray-900 mb-2 text-center">Infrastructure Gaps</h3>
+                    <p class="text-gray-600 text-center text-sm">Primary health centres lack diagnostic labs, equipment, and specialist doctors</p>
+                </div>
+            </div>
+
+            <!-- Solution Call-out -->
+            <div class="bg-gradient-to-r from-blue-600 to-green-600 rounded-3xl p-8 text-center text-white shadow-2xl">
+                <div class="flex items-center justify-center mb-4">
+                    <span class="text-4xl mr-3">👉</span>
+                    <h3 class="text-2xl font-bold">Our Solution</h3>
+                </div>
+                <p class="text-xl leading-relaxed max-w-4xl mx-auto">
+                    A seamless telemedicine platform connecting patients, doctors, and pharmacies in Nabha - 
+                    bridging the healthcare gap with technology, accessibility, and local language support.
+                </p>
+                <div class="mt-6">
+                    <a href="/#features" class="bg-white text-blue-600 font-bold py-3 px-8 rounded-full text-lg transition-all transform hover:scale-105 shadow-lg">
+                        See Our Solution →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Healthcare Statistics Section -->
+    <section class="py-16 bg-gradient-to-r from-red-600 to-pink-600">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">📊 Healthcare Reality in Numbers</h2>
+                <p class="text-pink-100 text-xl max-w-3xl mx-auto">The stark statistics that highlight the urgent need for telemedicine solutions</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Statistic 1 -->
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center border border-white/20">
+                    <div class="text-5xl mb-4">🚑</div>
+                    <div class="text-4xl font-bold text-white mb-2">15-20</div>
+                    <div class="text-pink-100 font-medium">KM Average Distance</div>
+                    <div class="text-pink-200 text-sm mt-2">to nearest healthcare facility</div>
+                </div>
+                
+                <!-- Statistic 2 -->
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center border border-white/20">
+                    <div class="text-5xl mb-4">👨‍⚕️</div>
+                    <div class="text-4xl font-bold text-white mb-2">1:2000</div>
+                    <div class="text-pink-100 font-medium">Doctor to Patient Ratio</div>
+                    <div class="text-pink-200 text-sm mt-2">in rural areas</div>
+                </div>
+                
+                <!-- Statistic 3 -->
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center border border-white/20">
+                    <div class="text-5xl mb-4">⏰</div>
+                    <div class="text-4xl font-bold text-white mb-2">2-4</div>
+                    <div class="text-pink-100 font-medium">Hours Average Wait</div>
+                    <div class="text-pink-200 text-sm mt-2">for emergency care</div>
+                </div>
+                
+                <!-- Statistic 4 -->
+                <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center border border-white/20">
+                    <div class="text-5xl mb-4">💰</div>
+                    <div class="text-4xl font-bold text-white mb-2">40%</div>
+                    <div class="text-pink-100 font-medium">Income Spent</div>
+                    <div class="text-pink-200 text-sm mt-2">on healthcare & travel</div>
+                </div>
+            </div>
+            
+            <!-- Call to Action -->
+            <div class="text-center mt-12">
+                <div class="bg-white/20 backdrop-blur-sm rounded-2xl p-8 max-w-3xl mx-auto border border-white/30">
+                    <h3 class="text-2xl font-bold text-white mb-4">💡 Our Telemedicine Solution Addresses These Challenges</h3>
+                    <p class="text-pink-100 text-lg leading-relaxed">
+                        By bringing healthcare directly to patients through digital consultations, 
+                        we eliminate distance barriers, reduce costs, and provide immediate access to medical expertise.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Nabha City Section -->
+    <section class="py-20 bg-blue-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-blue-800 mb-4">🏛️ About Nabha City - नाभा शहर के बारे में</h2>
+                <p class="text-xl text-blue-700 max-w-3xl mx-auto">Comprehensive overview of Nabha - History, Geography, Demographics, and Infrastructure</p>
+            </div>
+
+            <!-- City Overview -->
+            <div class="bg-white rounded-3xl shadow-xl p-8 md:p-12 mb-12">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    <!-- Left Column: Basic Info -->
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                            <span class="text-3xl mr-3">📍</span>
+                            City Overview
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                                <h4 class="font-semibold text-blue-800 mb-2">🏛️ Administrative Status</h4>
+                                <p class="text-gray-700">Municipal Council, Patiala District, Punjab State, India</p>
+                            </div>
+                            <div class="bg-green-50 rounded-xl p-4 border border-green-200">
+                                <h4 class="font-semibold text-green-800 mb-2">🌍 Location</h4>
+                                <p class="text-gray-700">30.38°N latitude, 76.15°E longitude</p>
+                                <p class="text-gray-600 text-sm">140 km north of Delhi, 85 km from Chandigarh</p>
+                            </div>
+                            <div class="bg-purple-50 rounded-xl p-4 border border-purple-200">
+                                <h4 class="font-semibold text-purple-800 mb-2">🏔️ Elevation</h4>
+                                <p class="text-gray-700">252 meters (827 feet) above sea level</p>
+                            </div>
+                            <div class="bg-yellow-50 rounded-xl p-4 border border-yellow-200">
+                                <h4 class="font-semibold text-yellow-800 mb-2">🗣️ Languages</h4>
+                                <p class="text-gray-700">Punjabi (primary), Hindi, English</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Visual City Representation & Statistics -->
+                    <div>
+                        <!-- City Visual -->
+                        <div class="bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl p-8 mb-6 text-white text-center">
+                            <div class="text-6xl mb-4">🏛️</div>
+                            <h3 class="text-2xl font-bold mb-2">Nabha City</h3>
+                            <p class="text-blue-100 mb-4">नाभा शहर</p>
+                            <div class="grid grid-cols-3 gap-4 text-center">
+                                <div>
+                                    <div class="text-2xl">🏰</div>
+                                    <div class="text-xs text-blue-200">Historic</div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl">🌾</div>
+                                    <div class="text-xs text-blue-200">Agricultural</div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl">🚂</div>
+                                    <div class="text-xs text-blue-200">Connected</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Key Statistics -->
+                        <h4 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                            <span class="text-2xl mr-2">📊</span>
+                            Key Statistics
+                        </h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl p-4 text-center">
+                                <div class="text-2xl font-bold text-blue-800">65,000+</div>
+                                <div class="text-blue-600 text-sm">City Population</div>
+                            </div>
+                            <div class="bg-gradient-to-br from-green-100 to-green-200 rounded-xl p-4 text-center">
+                                <div class="text-2xl font-bold text-green-800">100,000+</div>
+                                <div class="text-green-600 text-sm">Metro Area</div>
+                            </div>
+                            <div class="bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl p-4 text-center">
+                                <div class="text-2xl font-bold text-purple-800">50+</div>
+                                <div class="text-purple-600 text-sm">Surrounding Villages</div>
+                            </div>
+                            <div class="bg-gradient-to-br from-red-100 to-red-200 rounded-xl p-4 text-center">
+                                <div class="text-2xl font-bold text-red-800">68%</div>
+                                <div class="text-red-600 text-sm">Literacy Rate</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nabha Location Map Section -->
+            <div class="bg-white rounded-3xl shadow-xl p-8 md:p-12 mb-12">
+                <h3 class="text-2xl font-bold text-gray-900 mb-8 text-center flex items-center justify-center">
+                    <span class="text-3xl mr-3">🗺️</span>
+                    Nabha Location Map - नाभा स्थान मानचित्र
+                </h3>
+                
+                <!-- Interactive Map Container -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Map Display -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-gray-100 rounded-2xl p-4 border-2 border-gray-200 h-96 relative overflow-hidden">
+                            <!-- Embedded Google Map -->
+                            <iframe 
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d55657.17819234834!2d76.11!3d30.38!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x391017a6b95b3a51%3A0x424dfb1a0c5e5ba4!2sNabha%2C%20Punjab!5e0!3m2!1sen!2sin!4v1626789123456!5m2!1sen!2sin"
+                                width="100%" 
+                                height="100%" 
+                                style="border:0; border-radius: 12px;" 
+                                allowfullscreen="" 
+                                loading="lazy" 
+                                referrerpolicy="no-referrer-when-downgrade"
+                                class="rounded-xl">
+                            </iframe>
+                            <!-- Fallback for when iframe doesn't load -->
+                            <div class="absolute inset-0 bg-gradient-to-br from-blue-100 to-green-100 rounded-xl flex items-center justify-center" style="z-index: -1;">
+                                <div class="text-center">
+                                    <div class="text-6xl mb-4">🗺️</div>
+                                    <h4 class="text-xl font-bold text-gray-800 mb-2">Nabha, Punjab</h4>
+                                    <p class="text-gray-600">30.38°N, 76.15°E</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Map Legend -->
+                        <div class="mt-4 bg-gray-50 rounded-xl p-4">
+                            <h4 class="font-semibold text-gray-800 mb-3">📍 Key Locations</h4>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                                <div class="flex items-center">
+                                    <div class="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                                    <span>Civil Hospital</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                                    <span>Railway Station</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                                    <span>Bus Terminal</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
+                                    <span>Main Market</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Location Details Panel -->
+                    <div class="space-y-4">
+                        <div class="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                            <h4 class="font-semibold text-blue-800 mb-3 flex items-center">
+                                <span class="text-xl mr-2">📍</span>
+                                Coordinates
+                            </h4>
+                            <div class="space-y-2 text-sm text-gray-700">
+                                <div><strong>Latitude:</strong> 30.3752°N</div>
+                                <div><strong>Longitude:</strong> 76.1539°E</div>
+                                <div><strong>Elevation:</strong> 252m</div>
+                                <div><strong>Time Zone:</strong> IST (UTC+5:30)</div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-green-50 rounded-xl p-4 border border-green-200">
+                            <h4 class="font-semibold text-green-800 mb-3 flex items-center">
+                                <span class="text-xl mr-2">🚗</span>
+                                Distances
+                            </h4>
+                            <div class="space-y-2 text-sm text-gray-700">
+                                <div><strong>Chandigarh:</strong> 85 km (1.5 hrs)</div>
+                                <div><strong>Patiala:</strong> 32 km (45 mins)</div>
+                                <div><strong>Delhi:</strong> 140 km (3 hrs)</div>
+                                <div><strong>Ludhiana:</strong> 78 km (1.5 hrs)</div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-yellow-50 rounded-xl p-4 border border-yellow-200">
+                            <h4 class="font-semibold text-yellow-800 mb-3 flex items-center">
+                                <span class="text-xl mr-2">🌾</span>
+                                Rural Coverage
+                            </h4>
+                            <div class="space-y-2 text-sm text-gray-700">
+                                <div><strong>Radius:</strong> 15-25 km</div>
+                                <div><strong>Villages:</strong> 50+ connected</div>
+                                <div><strong>Rural Pop:</strong> 35,000+</div>
+                                <div><strong>Area:</strong> 142 sq km</div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-purple-50 rounded-xl p-4 border border-purple-200">
+                            <h4 class="font-semibold text-purple-800 mb-3 flex items-center">
+                                <span class="text-xl mr-2">🏥</span>
+                                Healthcare Reach
+                            </h4>
+                            <div class="space-y-2 text-sm text-gray-700">
+                                <div><strong>Primary:</strong> Nabha Civil Hospital</div>
+                                <div><strong>Secondary:</strong> Patiala (32km)</div>
+                                <div><strong>Tertiary:</strong> Chandigarh (85km)</div>
+                                <div><strong>Emergency:</strong> PGIMER Chandigarh</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Surrounding Villages Map -->
+                <div class="mt-8 bg-gradient-to-br from-green-50 to-blue-50 rounded-2xl p-6 border border-green-200">
+                    <h4 class="text-xl font-bold text-gray-900 mb-6 text-center flex items-center justify-center">
+                        <span class="text-2xl mr-2">🏘️</span>
+                        Major Villages Around Nabha - नाभा के आसपास के मुख्य गांव
+                    </h4>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                        <div class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-200">
+                            <div class="font-semibold text-gray-800">Ghanaur</div>
+                            <div class="text-xs text-gray-600">12 km North</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-200">
+                            <div class="font-semibold text-gray-800">Amloh</div>
+                            <div class="text-xs text-gray-600">18 km East</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-200">
+                            <div class="font-semibold text-gray-800">Rajpura</div>
+                            <div class="text-xs text-gray-600">22 km South</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-200">
+                            <div class="font-semibold text-gray-800">Sanour</div>
+                            <div class="text-xs text-gray-600">15 km West</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-200">
+                            <div class="font-semibold text-gray-800">Bhadson</div>
+                            <div class="text-xs text-gray-600">8 km Northeast</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-200">
+                            <div class="font-semibold text-gray-800">Kurar</div>
+                            <div class="text-xs text-gray-600">10 km Southwest</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-200">
+                            <div class="font-semibold text-gray-800">Dappar</div>
+                            <div class="text-xs text-gray-600">14 km Northwest</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-200">
+                            <div class="font-semibold text-gray-800">Chotti</div>
+                            <div class="text-xs text-gray-600">11 km Southeast</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-200">
+                            <div class="font-semibold text-gray-800">Longowal</div>
+                            <div class="text-xs text-gray-600">25 km East</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-200">
+                            <div class="font-semibold text-gray-800">Samaspur</div>
+                            <div class="text-xs text-gray-600">16 km North</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-200">
+                            <div class="font-semibold text-gray-800">Banur</div>
+                            <div class="text-xs text-gray-600">35 km South</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-3 text-center shadow-sm border border-gray-200">
+                            <div class="font-semibold text-gray-800">Dhanaula</div>
+                            <div class="text-xs text-gray-600">28 km West</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Distance Impact -->
+                    <div class="mt-6 bg-red-50 rounded-xl p-4 border border-red-200">
+                        <h5 class="font-semibold text-red-800 mb-2 flex items-center">
+                            <span class="text-lg mr-2">⚠️</span>
+                            Healthcare Distance Challenge
+                        </h5>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                            <div class="text-gray-700">
+                                <strong>Travel Time:</strong> 30-60 minutes to reach Nabha Civil Hospital from remote villages
+                            </div>
+                            <div class="text-gray-700">
+                                <strong>Transportation Cost:</strong> ₹100-300 round trip for families
+                            </div>
+                            <div class="text-gray-700">
+                                <strong>Daily Wage Loss:</strong> ₹300-500 for agricultural workers
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historical Background -->
+            <div class="bg-white rounded-3xl shadow-xl p-8 md:p-12 mb-12">
+                <h3 class="text-2xl font-bold text-gray-900 mb-8 text-center flex items-center justify-center">
+                    <span class="text-3xl mr-3">🏛️</span>
+                    Historical Background - ऐतिहासिक पृष्ठभूमि
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Ancient Period -->
+                    <div class="bg-amber-50 rounded-xl p-6 border border-amber-200">
+                        <div class="bg-amber-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
+                            <span class="text-white text-xl">🏺</span>
+                        </div>
+                        <h4 class="text-lg font-semibold text-amber-800 mb-3 text-center">Ancient Era</h4>
+                        <ul class="text-gray-700 space-y-2 text-sm">
+                            <li>• Founded in 1755 by Hamir Singh</li>
+                            <li>• Named after Nabha Singh, Sikh ruler</li>
+                            <li>• Part of Phulkian States confederation</li>
+                            <li>• Strategic location on trade routes</li>
+                        </ul>
+                    </div>
+
+                    <!-- Colonial Period -->
+                    <div class="bg-indigo-50 rounded-xl p-6 border border-indigo-200">
+                        <div class="bg-indigo-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
+                            <span class="text-white text-xl">🏴</span>
+                        </div>
+                        <h4 class="text-lg font-semibold text-indigo-800 mb-3 text-center">Colonial Era</h4>
+                        <ul class="text-gray-700 space-y-2 text-sm">
+                            <li>• British protectorate (1809-1947)</li>
+                            <li>• Princely state under British Raj</li>
+                            <li>• Railway connection established (1890s)</li>
+                            <li>• Administrative center development</li>
+                        </ul>
+                    </div>
+
+                    <!-- Modern Period -->
+                    <div class="bg-green-50 rounded-xl p-6 border border-green-200">
+                        <div class="bg-green-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
+                            <span class="text-white text-xl">🇮🇳</span>
+                        </div>
+                        <h4 class="text-lg font-semibold text-green-800 mb-3 text-center">Modern India</h4>
+                        <ul class="text-gray-700 space-y-2 text-sm">
+                            <li>• Merged into Punjab state (1947)</li>
+                            <li>• Industrial development (1960s-80s)</li>
+                            <li>• Educational hub establishment</li>
+                            <li>• Healthcare infrastructure growth</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Geography & Demographics -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                <!-- Geography -->
+                <div class="bg-white rounded-3xl shadow-xl p-8">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                        <span class="text-3xl mr-3">🌍</span>
+                        Geography & Climate
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="bg-blue-50 rounded-xl p-4">
+                            <h4 class="font-semibold text-blue-800 mb-2">🏔️ Topography</h4>
+                            <p class="text-gray-700 text-sm">Flat alluvial plains, fertile agricultural land, Ghaggar river proximity</p>
+                        </div>
+                        <div class="bg-yellow-50 rounded-xl p-4">
+                            <h4 class="font-semibold text-yellow-800 mb-2">🌡️ Climate</h4>
+                            <p class="text-gray-700 text-sm">Semi-arid, hot summers (45°C), cool winters (2°C), monsoon rains</p>
+                        </div>
+                        <div class="bg-green-50 rounded-xl p-4">
+                            <h4 class="font-semibold text-green-800 mb-2">🌾 Agriculture</h4>
+                            <p class="text-gray-700 text-sm">Wheat, rice, cotton, sugarcane farming dominates economy</p>
+                        </div>
+                        <div class="bg-purple-50 rounded-xl p-4">
+                            <h4 class="font-semibold text-purple-800 mb-2">🚗 Connectivity</h4>
+                            <p class="text-gray-700 text-sm">NH-7, railway junction, bus terminals connect to major cities</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Demographics -->
+                <div class="bg-white rounded-3xl shadow-xl p-8">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                        <span class="text-3xl mr-3">👥</span>
+                        Demographics & Society
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="bg-red-50 rounded-xl p-4">
+                            <h4 class="font-semibold text-red-800 mb-2">📊 Population Breakdown</h4>
+                            <div class="grid grid-cols-2 gap-2 text-sm">
+                                <div>Male: 52%</div>
+                                <div>Female: 48%</div>
+                                <div>Urban: 75%</div>
+                                <div>Rural: 25%</div>
+                            </div>
+                        </div>
+                        <div class="bg-orange-50 rounded-xl p-4">
+                            <h4 class="font-semibold text-orange-800 mb-2">🏘️ Communities</h4>
+                            <p class="text-gray-700 text-sm">Sikh majority, Hindu, Muslim minorities, Punjabi culture predominant</p>
+                        </div>
+                        <div class="bg-indigo-50 rounded-xl p-4">
+                            <h4 class="font-semibold text-indigo-800 mb-2">💼 Occupation</h4>
+                            <p class="text-gray-700 text-sm">Agriculture 40%, Trade 25%, Services 20%, Labor 15%</p>
+                        </div>
+                        <div class="bg-pink-50 rounded-xl p-4">
+                            <h4 class="font-semibold text-pink-800 mb-2">👶 Age Distribution</h4>
+                            <p class="text-gray-700 text-sm">0-14: 25%, 15-64: 65%, 65+: 10% (aging population)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Education & Infrastructure -->
+            <div class="bg-white rounded-3xl shadow-xl p-8 md:p-12 mb-12">
+                <h3 class="text-2xl font-bold text-gray-900 mb-8 text-center flex items-center justify-center">
+                    <span class="text-3xl mr-3">🎓</span>
+                    Education & Infrastructure - शिक्षा और अवसंरचना
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Educational Institutions -->
+                    <div class="bg-blue-50 rounded-xl p-6 border border-blue-200">
+                        <div class="bg-blue-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
+                            <span class="text-white text-xl">🏫</span>
+                        </div>
+                        <h4 class="font-semibold text-blue-800 mb-3 text-center">Schools</h4>
+                        <ul class="text-gray-700 space-y-1 text-sm">
+                            <li>• 45+ Primary Schools</li>
+                            <li>• 15+ High Schools</li>
+                            <li>• 8+ Senior Secondary</li>
+                            <li>• 3+ English Medium</li>
+                        </ul>
+                    </div>
+
+                    <!-- Higher Education -->
+                    <div class="bg-green-50 rounded-xl p-6 border border-green-200">
+                        <div class="bg-green-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
+                            <span class="text-white text-xl">🎓</span>
+                        </div>
+                        <h4 class="font-semibold text-green-800 mb-3 text-center">Colleges</h4>
+                        <ul class="text-gray-700 space-y-1 text-sm">
+                            <li>• Government College</li>
+                            <li>• Technical Institute</li>
+                            <li>• Teacher Training</li>
+                            <li>• Polytechnic College</li>
+                        </ul>
+                    </div>
+
+                    <!-- Healthcare Facilities -->
+                    <div class="bg-red-50 rounded-xl p-6 border border-red-200">
+                        <div class="bg-red-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
+                            <span class="text-white text-xl">🏥</span>
+                        </div>
+                        <h4 class="font-semibold text-red-800 mb-3 text-center">Healthcare</h4>
+                        <ul class="text-gray-700 space-y-1 text-sm">
+                            <li>• Civil Hospital (Main)</li>
+                            <li>• 12+ Private Clinics</li>
+                            <li>• 25+ Pharmacies</li>
+                            <li>• 3+ Diagnostic Centers</li>
+                        </ul>
+                    </div>
+
+                    <!-- Transportation -->
+                    <div class="bg-purple-50 rounded-xl p-6 border border-purple-200">
+                        <div class="bg-purple-600 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-4">
+                            <span class="text-white text-xl">🚌</span>
+                        </div>
+                        <h4 class="font-semibold text-purple-800 mb-3 text-center">Transport</h4>
+                        <ul class="text-gray-700 space-y-1 text-sm">
+                            <li>• Railway Station</li>
+                            <li>• Bus Terminal</li>
+                            <li>• Auto/Taxi Services</li>
+                            <li>• Cycle Rickshaws</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Government Policies & Healthcare Initiatives -->
+            <div class="bg-white rounded-3xl shadow-xl p-8 md:p-12">
+                <h3 class="text-2xl font-bold text-gray-900 mb-8 text-center flex items-center justify-center">
+                    <span class="text-3xl mr-3">🏛️</span>
+                    Government Policies & Healthcare Initiatives
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- State Policies -->
+                    <div class="bg-blue-50 rounded-xl p-6 border border-blue-200">
+                        <h4 class="text-lg font-semibold text-blue-800 mb-4 flex items-center">
+                            <span class="text-2xl mr-2">🏛️</span>
+                            Punjab Health Policies
+                        </h4>
+                        <ul class="text-gray-700 space-y-2 text-sm">
+                            <li>• Sarbat Sehat Bima Yojana (Universal Health Insurance)</li>
+                            <li>• Digital Health Mission Punjab</li>
+                            <li>• Rural Health Infrastructure Development</li>
+                            <li>• Telemedicine Integration Initiative</li>
+                            <li>• Punjab Health Systems Corporation</li>
+                        </ul>
+                    </div>
+
+                    <!-- Central Schemes -->
+                    <div class="bg-green-50 rounded-xl p-6 border border-green-200">
+                        <h4 class="text-lg font-semibold text-green-800 mb-4 flex items-center">
+                            <span class="text-2xl mr-2">🇮🇳</span>
+                            National Health Programs
+                        </h4>
+                        <ul class="text-gray-700 space-y-2 text-sm">
+                            <li>• Ayushman Bharat - Pradhan Mantri Jan Arogya Yojana</li>
+                            <li>• National Digital Health Mission</li>
+                            <li>• National Rural Health Mission</li>
+                            <li>• Pradhan Mantri Swasthya Suraksha Yojana</li>
+                            <li>• e-Sanjeevani Telemedicine Platform</li>
+                        </ul>
+                    </div>
+
+                    <!-- Local Initiatives -->
+                    <div class="bg-purple-50 rounded-xl p-6 border border-purple-200">
+                        <h4 class="text-lg font-semibold text-purple-800 mb-4 flex items-center">
+                            <span class="text-2xl mr-2">🏛️</span>
+                            Local Health Initiatives
+                        </h4>
+                        <ul class="text-gray-700 space-y-2 text-sm">
+                            <li>• Mobile Health Clinics for Villages</li>
+                            <li>• Health Camps & Vaccination Drives</li>
+                            <li>• Maternal & Child Health Programs</li>
+                            <li>• Community Health Worker Training</li>
+                            <li>• Public-Private Healthcare Partnerships</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Healthcare Challenges & Gaps -->
+                <div class="mt-8 bg-red-50 rounded-xl p-6 border border-red-200">
+                    <h4 class="text-lg font-semibold text-red-800 mb-4 text-center flex items-center justify-center">
+                        <span class="text-2xl mr-2">⚠️</span>
+                        Current Healthcare Policy Gaps in Rural Areas
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h5 class="font-semibold text-red-700 mb-2">Implementation Challenges:</h5>
+                            <ul class="text-gray-700 space-y-1 text-sm">
+                                <li>• Limited specialist doctors in rural areas</li>
+                                <li>• Inadequate digital infrastructure</li>
+                                <li>• Language barriers in health communication</li>
+                                <li>• Poor last-mile connectivity</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h5 class="font-semibold text-red-700 mb-2">Our Solution Addresses:</h5>
+                            <ul class="text-gray-700 space-y-1 text-sm">
+                                <li>• Direct specialist access via telemedicine</li>
+                                <li>• Punjabi language support</li>
+                                <li>• Local pharmacy integration</li>
+                                <li>• 24/7 emergency response system</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Detailed Problem Statement Section -->
+    <section class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">🌍 Why Nabha? Our Research-Based Problem Statement</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">Understanding the specific healthcare challenges facing Nabha and its surrounding rural communities</p>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-xl p-8 md:p-12 mb-12">
+                <div class="prose prose-lg max-w-none">
+                    <p class="text-gray-700 text-lg leading-relaxed mb-8">
+                        <strong>Nabha</strong>, a semi-urban town in Patiala district, Punjab, is surrounded by dozens of rural villages with limited healthcare infrastructure. 
+                        Despite having a population of over <strong>100,000</strong> in the region, access to specialists, diagnostics, and pharmacies remains scarce.
+                    </p>
+                </div>
+
+                <h3 class="text-2xl font-bold text-gray-900 mb-8 text-center">🔍 Key Issues Identified Through Research</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Issue 1 -->
+                    <div class="bg-blue-50 rounded-2xl p-6 border border-blue-200 card-hover">
+                        <div class="flex items-start">
+                            <div class="bg-blue-600 rounded-full w-12 h-12 flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="text-white text-xl">🚗</span>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-semibold text-gray-900 mb-2">Distance & Transport Barriers</h4>
+                                <p class="text-gray-700">Residents often travel 20–50 km to reach secondary hospitals, making healthcare costly and time-consuming.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Issue 2 -->
+                    <div class="bg-red-50 rounded-2xl p-6 border border-red-200 card-hover">
+                        <div class="flex items-start">
+                            <div class="bg-red-600 rounded-full w-12 h-12 flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="text-white text-xl">🏗️</span>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-semibold text-gray-900 mb-2">Infrastructure Gaps</h4>
+                                <p class="text-gray-700">Primary health centres lack diagnostic labs, equipment, and specialist doctors. Many patients rely on occasional health camps.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Issue 3 -->
+                    <div class="bg-yellow-50 rounded-2xl p-6 border border-yellow-200 card-hover">
+                        <div class="flex items-start">
+                            <div class="bg-yellow-600 rounded-full w-12 h-12 flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="text-white text-xl">⏰</span>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-semibold text-gray-900 mb-2">Delayed Care</h4>
+                                <p class="text-gray-700">Low awareness and lack of early diagnostic support lead to late-stage detection of chronic diseases like diabetes, hypertension, and respiratory illnesses.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Issue 4 -->
+                    <div class="bg-green-50 rounded-2xl p-6 border border-green-200 card-hover">
+                        <div class="flex items-start">
+                            <div class="bg-green-600 rounded-full w-12 h-12 flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="text-white text-xl">🗨️</span>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-semibold text-gray-900 mb-2">Language & Literacy Challenges</h4>
+                                <p class="text-gray-700">Many patients speak only Punjabi and struggle with technical or English medical terms, creating communication barriers.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Issue 5 -->
+                    <div class="bg-purple-50 rounded-2xl p-6 border border-purple-200 card-hover">
+                        <div class="flex items-start">
+                            <div class="bg-purple-600 rounded-full w-12 h-12 flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="text-white text-xl">💰</span>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-semibold text-gray-900 mb-2">Economic Strain</h4>
+                                <p class="text-gray-700">Treatment costs, travel expenses, and loss of daily wages discourage timely care, especially for daily-wage workers and farmers.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Issue 6 -->
+                    <div class="bg-indigo-50 rounded-2xl p-6 border border-indigo-200 card-hover">
+                        <div class="flex items-start">
+                            <div class="bg-indigo-600 rounded-full w-12 h-12 flex items-center justify-center mr-4 flex-shrink-0">
+                                <span class="text-white text-xl">⛺</span>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-semibold text-gray-900 mb-2">Reliance on Health Camps</h4>
+                                <p class="text-gray-700">Patients depend on occasional health camps (e.g., free eye camps for cataract treatment) rather than consistent healthcare access.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visual Representation -->
+                <div class="mt-12 bg-gradient-to-r from-blue-100 to-green-100 rounded-2xl p-8 text-center">
+                    <h4 class="text-xl font-bold text-gray-900 mb-6">📍 The Healthcare Journey Challenge</h4>
+                    <div class="flex items-center justify-center space-x-4 text-lg flex-wrap">
+                        <div class="bg-white rounded-full px-4 py-2 shadow-md">🏘️ Village</div>
+                        <div class="text-2xl">→</div>
+                        <div class="bg-white rounded-full px-4 py-2 shadow-md">🚗 20-50km</div>
+                        <div class="text-2xl">→</div>
+                        <div class="bg-white rounded-full px-4 py-2 shadow-md">🏥 Hospital</div>
+                    </div>
+                    <p class="mt-4 text-gray-700 font-semibold">"Bringing healthcare closer to Nabha's people"</p>
+                </div>
+
+                <!-- Solution Preview -->
+                <div class="mt-12 text-center">
+                    <div class="bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl p-6 text-white">
+                        <h4 class="text-xl font-bold mb-3">👉 Our Project Addresses These Challenges</h4>
+                        <p class="text-lg">By providing accessible, multilingual, AI-powered, and real-time telemedicine services tailored specifically for Nabha and its rural communities.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Our Approach Section -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">🎯 Our Innovative Approach</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto">How we're revolutionizing healthcare delivery in rural Punjab</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Technology -->
+                <div class="bg-blue-50 rounded-2xl p-8 text-center card-hover">
+                    <div class="bg-blue-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                        <svg class="h-10 w-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Advanced Technology</h3>
+                    <p class="text-gray-600">AI-powered symptom analysis, real-time video consultations, and seamless integration with local healthcare providers.</p>
+                </div>
+
+                <!-- Accessibility -->
+                <div class="bg-green-50 rounded-2xl p-8 text-center card-hover">
+                    <div class="bg-green-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                        <svg class="h-10 w-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Community-Centered</h3>
+                    <p class="text-gray-600">Designed specifically for rural communities with multilingual support, affordable pricing, and local partnerships.</p>
+                </div>
+
+                <!-- Collaboration -->
+                <div class="bg-purple-50 rounded-2xl p-8 text-center card-hover">
+                    <div class="bg-purple-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                        <svg class="h-10 w-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-4">Rapid Response</h3>
+                    <p class="text-gray-600">24/7 availability, emergency alerts, and immediate connection to healthcare providers when needed most.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Statistics Section -->
+    <section class="py-20 bg-gradient-to-br from-blue-50 to-purple-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">📊 Our Impact</h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">Making a measurable difference in rural healthcare accessibility</p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div class="text-center">
+                    <div class="bg-white rounded-2xl p-6 shadow-lg card-hover">
+                        <div class="text-3xl font-bold text-blue-600 mb-2">100,000+</div>
+                        <div class="text-gray-600">Population Served</div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <div class="bg-white rounded-2xl p-6 shadow-lg card-hover">
+                        <div class="text-3xl font-bold text-green-600 mb-2">50+</div>
+                        <div class="text-gray-600">Rural Villages</div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <div class="bg-white rounded-2xl p-6 shadow-lg card-hover">
+                        <div class="text-3xl font-bold text-purple-600 mb-2">25km</div>
+                        <div class="text-gray-600">Average Distance Saved</div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <div class="bg-white rounded-2xl p-6 shadow-lg card-hover">
+                        <div class="text-3xl font-bold text-red-600 mb-2">24/7</div>
+                        <div class="text-gray-600">Healthcare Access</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">👥 Our Team</h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">Passionate developers and healthcare advocates working to transform rural healthcare</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Team Member 1 -->
+                <div class="bg-gray-50 rounded-2xl p-6 text-center card-hover">
+                    <div class="bg-blue-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                        <span class="text-white text-2xl font-bold">RC</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Rahul Chouhan</h3>
+                    <p class="text-blue-600 font-medium mb-3">Lead Developer</p>
+                    <p class="text-gray-600 text-sm">Full-stack development and system architecture</p>
+                </div>
+
+                <!-- Team Member 2 -->
+                <div class="bg-gray-50 rounded-2xl p-6 text-center card-hover">
+                    <div class="bg-green-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                        <span class="text-white text-2xl font-bold">KR</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Kumar Ritvik</h3>
+                    <p class="text-green-600 font-medium mb-3">Backend Developer</p>
+                    <p class="text-gray-600 text-sm">API development and database management</p>
+                </div>
+
+                <!-- Team Member 3 -->
+                <div class="bg-gray-50 rounded-2xl p-6 text-center card-hover">
+                    <div class="bg-purple-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                        <span class="text-white text-2xl font-bold">AS</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Anubhav Sharma</h3>
+                    <p class="text-purple-600 font-medium mb-3">Frontend Developer</p>
+                    <p class="text-gray-600 text-sm">UI/UX design and user experience</p>
+                </div>
+
+                <!-- Team Member 4 -->
+                <div class="bg-gray-50 rounded-2xl p-6 text-center card-hover">
+                    <div class="bg-yellow-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                        <span class="text-white text-2xl font-bold">AR</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Atish Rajan</h3>
+                    <p class="text-yellow-600 font-medium mb-3">AI/ML Developer</p>
+                    <p class="text-gray-600 text-sm">Symptom analysis and AI integration</p>
+                </div>
+
+                <!-- Team Member 5 -->
+                <div class="bg-gray-50 rounded-2xl p-6 text-center card-hover">
+                    <div class="bg-pink-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                        <span class="text-white text-2xl font-bold">RK</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Richa Kumari</h3>
+                    <p class="text-pink-600 font-medium mb-3">Research Analyst</p>
+                    <p class="text-gray-600 text-sm">Healthcare research and data analysis</p>
+                </div>
+
+                <!-- Team Member 6 -->
+                <div class="bg-gray-50 rounded-2xl p-6 text-center card-hover">
+                    <div class="bg-indigo-600 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                        <span class="text-white text-2xl font-bold">AS</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">Ankit Singh</h3>
+                    <p class="text-indigo-600 font-medium mb-3">Quality Assurance</p>
+                    <p class="text-gray-600 text-sm">Testing and system reliability</p>
+                </div>
+            </div>
+
+            <!-- Institution -->
+            <div class="mt-12 text-center">
+                <div class="bg-gradient-to-r from-green-100 to-blue-100 rounded-2xl p-8">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4">🎓 Sathyabhama Institute of Science and Technology</h3>
+                    <p class="text-gray-700 text-lg">Empowering students to create innovative solutions for real-world problems</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Visual Impact Section -->
+    <section class="py-20 bg-gradient-to-br from-purple-900 via-blue-900 to-green-900 relative overflow-hidden">
+        <!-- Background Pattern -->
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute top-0 left-0 w-full h-full" style="background-image: radial-gradient(circle at 25% 25%, white 2px, transparent 2px), radial-gradient(circle at 75% 75%, white 2px, transparent 2px); background-size: 50px 50px;"></div>
+        </div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-bold text-white mb-6">
+                    Healthcare Transformation in Numbers
+                    <span class="block text-2xl md:text-3xl mt-4 font-light text-blue-300">स्वास्थ्य सेवा क्रांति</span>
+                </h2>
+                <p class="text-xl text-purple-200 max-w-3xl mx-auto leading-relaxed">
+                    Witness the digital revolution that's bringing hope to every household in rural Nabha
+                </p>
+            </div>
+
+            <!-- Impact Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+                <!-- Impact 1 -->
+                <div class="group">
+                    <div class="bg-white/10 backdrop-blur-sm rounded-3xl p-8 text-center border border-white/20 hover:border-white/40 transition-all duration-300 group-hover:transform group-hover:scale-105">
+                        <div class="text-6xl mb-4 group-hover:animate-bounce">🏥</div>
+                        <div class="text-4xl font-bold text-white mb-2">50+</div>
+                        <div class="text-blue-300 font-medium mb-2">Villages Connected</div>
+                        <div class="text-purple-200 text-sm">Digital healthcare access</div>
+                    </div>
+                </div>
+                
+                <!-- Impact 2 -->
+                <div class="group">
+                    <div class="bg-white/10 backdrop-blur-sm rounded-3xl p-8 text-center border border-white/20 hover:border-white/40 transition-all duration-300 group-hover:transform group-hover:scale-105">
+                        <div class="text-6xl mb-4 group-hover:animate-bounce">👨‍⚕️</div>
+                        <div class="text-4xl font-bold text-white mb-2">24/7</div>
+                        <div class="text-green-300 font-medium mb-2">Doctor Availability</div>
+                        <div class="text-purple-200 text-sm">Round-the-clock care</div>
+                    </div>
+                </div>
+                
+                <!-- Impact 3 -->
+                <div class="group">
+                    <div class="bg-white/10 backdrop-blur-sm rounded-3xl p-8 text-center border border-white/20 hover:border-white/40 transition-all duration-300 group-hover:transform group-hover:scale-105">
+                        <div class="text-6xl mb-4 group-hover:animate-bounce">💰</div>
+                        <div class="text-4xl font-bold text-white mb-2">70%</div>
+                        <div class="text-yellow-300 font-medium mb-2">Cost Reduction</div>
+                        <div class="text-purple-200 text-sm">Affordable healthcare</div>
+                    </div>
+                </div>
+                
+                <!-- Impact 4 -->
+                <div class="group">
+                    <div class="bg-white/10 backdrop-blur-sm rounded-3xl p-8 text-center border border-white/20 hover:border-white/40 transition-all duration-300 group-hover:transform group-hover:scale-105">
+                        <div class="text-6xl mb-4 group-hover:animate-bounce">⚡</div>
+                        <div class="text-4xl font-bold text-white mb-2">5min</div>
+                        <div class="text-pink-300 font-medium mb-2">Response Time</div>
+                        <div class="text-purple-200 text-sm">Instant consultation</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visual Story -->
+            <div class="bg-white/5 backdrop-blur-sm rounded-3xl p-12 border border-white/20">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-12 items-center">
+                    <!-- Before -->
+                    <div class="text-center">
+                        <div class="bg-red-500/20 rounded-2xl p-8 mb-6">
+                            <div class="text-5xl mb-4">😰</div>
+                            <h3 class="text-xl font-bold text-red-300 mb-4">Before Telemedicine</h3>
+                            <ul class="text-red-200 space-y-2 text-sm">
+                                <li>• 20+ km travel to hospitals</li>
+                                <li>• Hours of waiting time</li>
+                                <li>• High medical costs</li>
+                                <li>• Language barriers</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Arrow -->
+                    <div class="text-center">
+                        <div class="text-6xl text-white animate-pulse">➡️</div>
+                        <p class="text-white font-bold mt-4">Digital Transformation</p>
+                    </div>
+
+                    <!-- After -->
+                    <div class="text-center">
+                        <div class="bg-green-500/20 rounded-2xl p-8 mb-6">
+                            <div class="text-5xl mb-4">😊</div>
+                            <h3 class="text-xl font-bold text-green-300 mb-4">With Our Platform</h3>
+                            <ul class="text-green-200 space-y-2 text-sm">
+                                <li>• Home-based consultations</li>
+                                <li>• Instant doctor access</li>
+                                <li>• Affordable healthcare</li>
+                                <li>• Punjabi language support</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 bg-gradient-to-r from-blue-600 to-green-600">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">
+                Join Our Healthcare Revolution
+            </h2>
+            <p class="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+                Be part of the change that's bringing quality healthcare to every village in Nabha
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="/register" class="bg-white text-blue-600 font-bold py-4 px-8 rounded-full text-lg transition-all transform hover:scale-105 shadow-lg">
+                    Get Started Today
+                </a>
+                <a href="/#features" class="border-2 border-white text-white font-bold py-4 px-8 rounded-full text-lg transition-all transform hover:scale-105 hover:bg-white hover:text-blue-600">
+                    Learn More
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- Company Info -->
+                <div class="col-span-1 md:col-span-2">
+                    <div class="flex items-center mb-4">
+                        <svg class="h-10 w-10 text-blue-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span class="text-2xl font-bold text-white">Telemedicine Rural Nabha</span>
+                    </div>
+                    <p class="text-gray-300 mb-6 max-w-md leading-relaxed">
+                        Bridging the healthcare gap in rural communities through innovative technology. 
+                        Making quality medical care accessible, affordable, and available 24/7.
+                    </p>
+                    <div class="flex flex-wrap gap-4">
+                        <a href="mailto:support@telemedicinerualnabha.com" class="flex items-center text-gray-300 hover:text-blue-400 transition-colors">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            Contact Us
+                        </a>
+                        <a href="tel:+91-9876543210" class="flex items-center text-gray-300 hover:text-blue-400 transition-colors">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                            </svg>
+                            24/7 Support
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Services -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-6 text-white">Our Services</h3>
+                    <ul class="space-y-3 text-gray-300">
+                        <li><a href="#features" class="hover:text-blue-400 transition-colors flex items-center">
+                            <span class="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>AI Symptom Checker
+                        </a></li>
+                        <li><a href="#features" class="hover:text-blue-400 transition-colors flex items-center">
+                            <span class="w-2 h-2 bg-green-400 rounded-full mr-3"></span>Video Consultation
+                        </a></li>
+                        <li><a href="#features" class="hover:text-blue-400 transition-colors flex items-center">
+                            <span class="w-2 h-2 bg-purple-400 rounded-full mr-3"></span>Pharmacy Network
+                        </a></li>
+                        <li><a href="#features" class="hover:text-blue-400 transition-colors flex items-center">
+                            <span class="w-2 h-2 bg-yellow-400 rounded-full mr-3"></span>Health Records
+                        </a></li>
+                        <li><a href="#features" class="hover:text-blue-400 transition-colors flex items-center">
+                            <span class="w-2 h-2 bg-red-400 rounded-full mr-3"></span>Emergency Care
+                        </a></li>
+                    </ul>
+                </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-6 text-white">Quick Links</h3>
+                    <ul class="space-y-3 text-gray-300">
+                        <li><a href="/login" class="hover:text-blue-400 transition-colors">Patient Login</a></li>
+                        <li><a href="/login" class="hover:text-blue-400 transition-colors">Doctor Portal</a></li>
+                        <li><a href="/login" class="hover:text-blue-400 transition-colors">Pharmacy Panel</a></li>
+                        <li><a href="#how-it-works" class="hover:text-blue-400 transition-colors">How It Works</a></li>
+                        <li><a href="#testimonials" class="hover:text-blue-400 transition-colors">Success Stories</a></li>
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-blue-400 transition-colors">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Statistics Section -->
+            <div class="border-t border-gray-800 mt-12 pt-8">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                    <div>
+                        <div class="text-2xl font-bold text-blue-400">10,000+</div>
+                        <div class="text-gray-400 text-sm">Patients Served</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-green-400">50+</div>
+                        <div class="text-gray-400 text-sm">Qualified Doctors</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-purple-400">25+</div>
+                        <div class="text-gray-400 text-sm">Partner Pharmacies</div>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold text-yellow-400">24/7</div>
+                        <div class="text-gray-400 text-sm">Healthcare Support</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Section -->
+            <div class="border-t border-gray-800 mt-8 pt-8">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <!-- Copyright and Team -->
+                    <div class="text-center md:text-left mb-4 md:mb-0">
+                        <p class="text-gray-300 mb-2">
+                            &copy; 2025 Telemedicine Rural Nabha. All rights reserved.
+                        </p>
+                        <p class="text-sm text-gray-400">
+                            Proudly developed by: <span class="text-blue-400 font-medium">Rahul Chouhan</span>, 
+                            <span class="text-green-400 font-medium">Kumar Ritvik</span>, 
+                            <span class="text-purple-400 font-medium">Anubhav Sharma</span>, 
+                            <span class="text-yellow-400 font-medium">Atish Rajan</span>, 
+                            <span class="text-pink-400 font-medium">Richa Kumari</span>, 
+                            <span class="text-indigo-400 font-medium">Ankit Singh</span>
+                        </p>
+                        <p class="text-sm text-green-300 font-medium mt-1">
+                            🎓 Sathyabhama Institute of Science and Technology
+                        </p>
+                    </div>
+
+                    <!-- Social Links & Awards -->
+                    <div class="flex flex-col items-center md:items-end">
+                        <div class="flex space-x-4 mb-2">
+                            <span class="text-yellow-400">🏆 Best Healthcare Innovation</span>
+                            <span class="text-green-400">🌟 Community Choice Award</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-gray-400 text-sm">
+                            <span>Made with</span>
+                            <span class="text-red-400">❤️</span>
+                            <span>for Rural Communities</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+
+    <!-- Google Translate Scripts -->
+    <script type="text/javascript">
+        // Language persistence functions
+        function saveSelectedLanguage(language) {
+            localStorage.setItem('selectedLanguage', language);
+        }
+        
+        function getSelectedLanguage() {
+            return localStorage.getItem('selectedLanguage') || 'en';
+        }
+        
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'hi,ta,pa,ur,en',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
+            }, 'google_translate_element');
+            
+            // Restore previously selected language
+            setTimeout(function() {
+                restoreSelectedLanguage();
+            }, 1000);
+        }
+        
+        function restoreSelectedLanguage() {
+            const savedLanguage = getSelectedLanguage();
+            if (savedLanguage && savedLanguage !== 'en') {
+                const selectElement = document.querySelector('.goog-te-combo');
+                if (selectElement) {
+                    selectElement.value = savedLanguage;
+                    selectElement.dispatchEvent(new Event('change'));
+                }
+            }
+        }
+        
+        // Monitor language changes and save them
+        function monitorLanguageChanges() {
+            const selectElement = document.querySelector('.goog-te-combo');
+            if (selectElement) {
+                selectElement.addEventListener('change', function() {
+                    saveSelectedLanguage(this.value);
+                });
+            }
+        }
+        
+        // Function to hide only the Google Translate banner while keeping widget functional
+        function hideGoogleTranslateBanner() {
+            // Hide only the banner frame, not the widget itself
+            const banner = document.querySelector('.goog-te-banner-frame');
+            if (banner) {
+                banner.style.display = 'none';
+                banner.style.visibility = 'hidden';
+            }
+            
+            // Reset body top position that Google Translate adds
+            if (document.body.style.top && document.body.style.top !== '0px') {
+                document.body.style.top = '0px';
+                document.body.style.position = 'static';
+            }
+            
+            // Hide only notification iframes, not the functional widget
+            const iframes = document.querySelectorAll('.skiptranslate iframe');
+            iframes.forEach(function(iframe) {
+                // Only hide if it's a banner iframe, not the main widget
+                if (iframe.src && iframe.src.includes('translate_a')) {
+                    return; // Don't hide the main translate functionality
+                }
+                iframe.style.display = 'none';
+                iframe.style.visibility = 'hidden';
+            });
+        }
+        
+        // Monitor for Google Translate banner (less frequent to avoid interfering)
+        setInterval(hideGoogleTranslateBanner, 500);
+        
+        // Also hide on page load
+        window.addEventListener('load', function() {
+            setTimeout(hideGoogleTranslateBanner, 1000);
+            setTimeout(monitorLanguageChanges, 1500);
+        });
+        
+        // Make sure the widget stays visible and functional
+        setInterval(function() {
+            const widget = document.querySelector('#google_translate_element');
+            if (widget) {
+                widget.style.display = 'inline-block';
+                widget.style.visibility = 'visible';
+            }
+            
+            // Ensure the select dropdown is visible and functional
+            const combo = document.querySelector('.goog-te-combo');
+            if (combo) {
+                combo.style.display = 'block';
+                combo.style.visibility = 'visible';
+            }
+        }, 1000);
+    </script>
+    
+    <script type="text/javascript" 
+        src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
+    </script>
+</body>
+</html>

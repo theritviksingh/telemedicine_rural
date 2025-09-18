@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Telemedicine for Rural Nabha</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2196F3;
+            --primary-dark: #1976D2;
+            --primary-light: #42A5F5;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.4)), url("{{ url_for('static', filename='bglogin.jpg') }}");
+            background-size: 100vw 100vh;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            height: 100vh;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+            backdrop-filter: blur(1px);
+        }
+        
+        html {
+            height: 100vh;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        .mobile-container {
+            max-width: 360px;
+            margin: 0 auto;
+            height: 100%;
+            position: relative;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(8px);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .hospital-header {
+            background: linear-gradient(135deg, rgba(33, 150, 243, 0.9) 0%, rgba(25, 118, 210, 0.95) 100%);
+            backdrop-filter: blur(15px);
+            color: white;
+            text-align: center;
+            padding: 2.5rem 2rem 2rem;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .login-form-container {
+            padding: 2rem;
+            background: linear-gradient(145deg, rgba(255,255,255,0.25), rgba(255,255,255,0.1));
+            backdrop-filter: blur(20px);
+            margin: 1.5rem;
+            border-radius: 20px;
+            box-shadow: 
+                0 8px 32px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.18);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 12px;
+            font-size: 16px;
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: rgba(33, 150, 243, 0.6);
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+            background: rgba(255,255,255,0.95);
+            transform: translateY(-1px);
+        }
+
+        .form-input::placeholder {
+            color: #666;
+            font-weight: 400;
+        }
+
+        .password-container {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 1rem 3rem 1rem 1rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 12px;
+            font-size: 16px;
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .password-input:focus {
+            outline: none;
+            border-color: rgba(33, 150, 243, 0.6);
+            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+            background: rgba(255,255,255,0.95);
+            transform: translateY(-1px);
+        }
+
+        .password-input::placeholder {
+            color: #666;
+            font-weight: 400;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #555;
+            font-size: 18px;
+            user-select: none;
+            transition: all 0.3s ease;
+            padding: 6px;
+            border-radius: 8px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .password-toggle:hover {
+            color: var(--primary);
+            background: rgba(33, 150, 243, 0.1);
+        }
+
+        .password-toggle svg {
+            width: 20px;
+            height: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .login-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 1.2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1.5rem;
+            box-shadow: 
+                0 8px 20px rgba(33, 150, 243, 0.3),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-btn:hover {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #1565C0 100%);
+            transform: translateY(-2px);
+            box-shadow: 
+                0 12px 25px rgba(33, 150, 243, 0.4),
+                inset 0 1px 0 rgba(255,255,255,0.3);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+            box-shadow: 
+                0 4px 12px rgba(33, 150, 243, 0.3),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+
+        .signup-link {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: rgba(255,255,255,0.9);
+            font-size: 14px;
+            font-weight: 500;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .signup-link a {
+            color: #64B5F6;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .signup-link a:hover {
+            color: #42A5F5;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .wifi-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: white;
+            font-size: 12px;
+        }
+
+        .battery-indicator {
+            position: absolute;
+            top: 10px;
+            right: 50px;
+            color: white;
+            font-size: 12px;
+        }
+
+        .time-indicator {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            color: white;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Phone device frame styles */
+        .phone-wrapper {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
+            position: relative;
+            padding: 2rem 1rem;
+            border-radius: 20px;
+        }
+        
+        /* Google Translate Widget Styling */
+        #google_translate_element {
+            display: inline-block;
+            vertical-align: middle;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 100;
+        }
+        
+        #google_translate_element .goog-te-combo {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            padding: 4px 8px 4px 25px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #333;
+            outline: none;
+            cursor: pointer;
+            min-width: 100px;
+            height: 28px;
+            text-align: left;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+        
+        #google_translate_element .goog-te-combo:hover {
+            background: white;
+            border-color: #2563eb;
+            transform: translateY(-1px);
+        }
+        
+        #google_translate_element .goog-te-combo:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        }
+        
+        /* Hide only the banner frame - keep functionality */
+        .goog-te-banner-frame {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        
+        /* Hide the top frame that appears when translating */
+        body {
+            top: 0px !important;
+        }
+        
+        /* Prevent Google Translate from adding margin to body */
+        body.translated-ltr {
+            top: 0 !important;
+        }
+        
+        body.translated-rtl {
+            top: 0 !important;
+        }
+        
+        /* Fix z-index issues with navbar and Google Translate */
+        .header-container {
+            position: relative !important;
+            z-index: 9999 !important;
+        }
+        
+        /* Ensure Google Translate dropdown appears correctly */
+        .goog-te-menu-frame {
+            z-index: 999999 !important;
+            border-radius: 0.5rem !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+            max-height: 200px !important;
+            overflow-y: auto !important;
+        }
+        
+        .goog-te-menu-frame .goog-te-menu2 {
+            background: white !important;
+            border-radius: 0.5rem !important;
+        }
+        
+        /* Fix Google Translate widget positioning */
+        #google_translate_element {
+            position: relative !important;
+            z-index: 10001 !important;
+        }
+        
+        /* Prevent Google Translate from affecting layout */
+        .goog-te-gadget {
+            font-size: 0 !important;
+            line-height: 0 !important;
+        }
+        
+        .goog-te-gadget > span {
+            vertical-align: top !important;
+        }
+        
+        .goog-te-gadget .goog-te-combo {
+            margin: 0 !important;
+            vertical-align: top !important;
+        }
+        
+        /* Hide notification bar but keep widget functional */
+        .skiptranslate iframe {
+            visibility: hidden !important;
+            height: 0 !important;
+        }
+        
+        /* Hide translate tooltips */
+        .translate-tooltip {
+            display: none !important;
+        }
+        
+        /* Style the Google Translate widget itself */
+        .goog-te-gadget-simple {
+            background-color: transparent !important;
+            border: none !important;
+            font-size: 12px !important;
+            font-family: 'Inter', sans-serif !important;
+            display: inline-block !important;
+        }
+        
+        .goog-te-gadget-simple .goog-te-menu-value {
+            color: #333 !important;
+            font-weight: 500 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        /* Hide the "Select Language" text but keep dropdown functional */
+        .goog-te-gadget-simple .goog-te-menu-value span:first-child {
+            display: none !important;
+        }
+        
+        /* Keep the actual language text visible */
+        .goog-te-gadget-simple .goog-te-menu-value span:last-child {
+            color: #333 !important;
+            font-weight: 500 !important;
+        }
+        
+        /* Hide Google Translate icon but keep our custom one */
+        .goog-te-gadget-icon {
+            display: none !important;
+        }
+        
+        /* Ensure the dropdown is clickable */
+        .goog-te-gadget-simple a {
+            text-decoration: none !important;
+            color: #333 !important;
+        }
+        
+        /* Style the actual dropdown when it appears */
+        .goog-te-combo {
+            background: rgba(255, 255, 255, 0.9) !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            border-radius: 6px !important;
+            padding: 4px 8px 4px 25px !important;
+            font-size: 12px !important;
+            color: #333 !important;
+            min-width: 100px !important;
+            height: 28px !important;
+        }
+        
+        /* Custom language selector styling for login page */
+        .language-selector {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            vertical-align: middle;
+        }
+        
+        .language-selector::before {
+            content: "🌐";
+            position: absolute;
+            left: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .device-frame {
+            width: 380px;
+            max-width: 85vw;
+            border-radius: 32px;
+            padding: 12px;
+            background: linear-gradient(145deg, #2c3e50, #34495e);
+            box-shadow: 
+                0 25px 60px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+
+        /* Hands overlay */
+        .hands-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 540px;
+            max-width: 98vw;
+            pointer-events: none;
+            z-index: 60; /* above device */
+            mix-blend-mode: normal;
+            object-fit: contain;
+        }
+
+        .device-bezel {
+            width: 100%;
+            border-radius: 26px;
+            background: #111;
+            padding: 6px;
+            box-shadow: inset 0 2px 0 rgba(255,255,255,0.02);
+        }
+
+        .device-screen {
+            background: linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0.05)), url("{{ url_for('static', filename='bglogin.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            backdrop-filter: blur(12px);
+            border-radius: 18px;
+            overflow: hidden;
+            position: relative;
+            height: 640px;
+            z-index: 20;
+        }
+
+        /* Notch / speaker camera */
+        .device-screen::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 180px;
+            height: 28px;
+            background: rgba(0,0,0,0.45);
+            border-radius: 14px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+            z-index: 30;
+        }
+
+        .device-bottom {
+            height: 18px;
+            margin-top: 8px;
+            border-radius: 12px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+        }
+
+        .mobile-container { /* adjust inner container to fit phone screen */
+            max-width: 360px;
+            margin: 0 auto;
+            height: 100%;
+            position: relative;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(8px);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        /* ensure device is below hands overlay */
+        .device-frame, .device-bezel { z-index: 25; position: relative; }
+    </style>
+</head>
+<body>
+    <div class="phone-wrapper flex items-center justify-center h-screen">
+    <!-- Hands overlay (SVG created and placed in static/) -->
+        <!-- Phone Device Frame -->
+        <div class="device-frame">
+            <div class="device-bezel">
+                <div class="device-screen">
+                    <div class="mobile-container">
+        <!-- Status Bar -->
+        <div class="battery-indicator">🔋</div>
+        <div class="wifi-icon">📶</div>
+        
+        <!-- Hospital Header -->
+        <div class="hospital-header">
+            <!-- Google Translate Widget -->
+            <div class="language-selector" style="position: absolute; top: 8px; right: 12px; z-index: 100;">
+                <div id="google_translate_element"></div>
+            </div>
+            
+            <h1 style="font-size: 18px; font-weight: 600; margin: 0; letter-spacing: 1px;">
+              Telemedicine for Rural Nabha
+            </h1>
+        </div>
+
+        <!-- Login Form -->
+        <div class="login-form-container">
+            <form method="post">
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    class="form-input"
+                    placeholder="Username"
+                    required
+                >
+
+                <div class="password-container">
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        class="password-input"
+                        placeholder="Password"
+                        required
+                    >
+                    <span class="password-toggle" onclick="togglePassword()" id="passwordToggle">
+                        <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <svg id="eyeOffIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display: none;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L12 12m-3.122-3.122L12 12m0 0l3.878 3.878M12 12L15.122 8.878M21 21l-3-3m-6-6" />
+                        </svg>
+                    </span>
+                </div>
+
+                
+
+                <select name="role" id="role" class="form-input" required style="color: #333;">
+                    <option value="patient">Patient</option>
+                    <option value="doctor">Doctor</option>
+                    <option value="pharmacy">Pharmacy</option>
+                </select>
+
+                <button type="submit" class="login-btn">
+                    LOGIN
+                </button>
+            </form>
+
+            {% if error %}
+            <div style="margin-top: 1rem; padding: 0.75rem; background: #ffebee; border: 1px solid #f44336; border-radius: 8px; color: #c62828; font-size: 14px;">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <div class="signup-link">
+                🔗 <a href="{{ url_for('register') }}">Register as patient</a>
+            </div>
+                    </div>
+                </div>
+
+                <!-- Bottom bezel (home area) -->
+                <div class="device-bottom"></div>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+function togglePassword() {
+    const passwordInput = document.getElementById('password');
+    const eyeIcon = document.getElementById('eyeIcon');
+    const eyeOffIcon = document.getElementById('eyeOffIcon');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        eyeIcon.style.display = 'none';
+        eyeOffIcon.style.display = 'block';
+    } else {
+        passwordInput.type = 'password';
+        eyeIcon.style.display = 'block';
+        eyeOffIcon.style.display = 'none';
+    }
+}
+</script>
+
+<!-- Google Translate Scripts -->
+<script type="text/javascript">
+    // Language persistence functions
+    function saveSelectedLanguage(language) {
+        localStorage.setItem('selectedLanguage', language);
+    }
+    
+    function getSelectedLanguage() {
+        return localStorage.getItem('selectedLanguage') || 'en';
+    }
+    
+    function googleTranslateElementInit() {
+        new google.translate.TranslateElement({
+            pageLanguage: 'en',
+            includedLanguages: 'hi,ta,pa,ur,en',
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+            autoDisplay: false
+        }, 'google_translate_element');
+        
+        // Restore previously selected language
+        setTimeout(function() {
+            restoreSelectedLanguage();
+        }, 1000);
+    }
+    
+    function restoreSelectedLanguage() {
+        const savedLanguage = getSelectedLanguage();
+        if (savedLanguage && savedLanguage !== 'en') {
+            const selectElement = document.querySelector('.goog-te-combo');
+            if (selectElement) {
+                selectElement.value = savedLanguage;
+                selectElement.dispatchEvent(new Event('change'));
+            }
+        }
+    }
+    
+    // Monitor language changes and save them
+    function monitorLanguageChanges() {
+        const selectElement = document.querySelector('.goog-te-combo');
+        if (selectElement) {
+            selectElement.addEventListener('change', function() {
+                saveSelectedLanguage(this.value);
+            });
+        }
+    }
+    
+    // Function to hide only the Google Translate banner while keeping widget functional
+    function hideGoogleTranslateBanner() {
+        // Hide only the banner frame, not the widget itself
+        const banner = document.querySelector('.goog-te-banner-frame');
+        if (banner) {
+            banner.style.display = 'none';
+            banner.style.visibility = 'hidden';
+        }
+        
+        // Reset body top position that Google Translate adds
+        if (document.body.style.top && document.body.style.top !== '0px') {
+            document.body.style.top = '0px';
+            document.body.style.position = 'static';
+        }
+        
+        // Hide only notification iframes, not the functional widget
+        const iframes = document.querySelectorAll('.skiptranslate iframe');
+        iframes.forEach(function(iframe) {
+            // Only hide if it's a banner iframe, not the main widget
+            if (iframe.src && iframe.src.includes('translate_a')) {
+                return; // Don't hide the main translate functionality
+            }
+            iframe.style.display = 'none';
+            iframe.style.visibility = 'hidden';
+        });
+    }
+    
+    // Monitor for Google Translate banner (less frequent to avoid interfering)
+    setInterval(hideGoogleTranslateBanner, 500);
+    
+    // Also hide on page load
+    window.addEventListener('load', function() {
+        setTimeout(hideGoogleTranslateBanner, 1000);
+        setTimeout(monitorLanguageChanges, 1500);
+    });
+    
+    // Make sure the widget stays visible and functional
+    setInterval(function() {
+        const widget = document.querySelector('#google_translate_element');
+        if (widget) {
+            widget.style.display = 'inline-block';
+            widget.style.visibility = 'visible';
+        }
+        
+        // Ensure the select dropdown is visible and functional
+        const combo = document.querySelector('.goog-te-combo');
+        if (combo) {
+            combo.style.display = 'block';
+            combo.style.visibility = 'visible';
+        }
+    }, 1000);
+</script>
+
+<script type="text/javascript" 
+    src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
+</script>
+</html>

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Appointment - Telemedicine Rural Nabha</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #e0f2fe 0%, #f1f8e9 100%); }
+        .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .card-hover:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+        .feature-card { background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%); }
+        
+        /* Google Translate Widget Styling */
+        .google-translate-container {
+            display: inline-block;
+        }
+
+        .google-translate-container select {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            color: #374151;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .google-translate-container select:hover {
+            border-color: #3b82f6;
+        }
+
+        .google-translate-container select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Hide Google Translate banner */
+        .goog-te-banner-frame {
+            display: none !important;
+        }
+
+        body {
+            top: 0 !important;
+        }
+
+        .goog-te-menu-value span:first-child {
+            display: none;
+        }
+
+        .goog-te-menu-value:before {
+            content: 'Translate';
+            color: #374151;
+        }
+
+        .goog-te-menu-frame {
+            border-radius: 0.5rem !important;
+            border: 1px solid #e2e8f0 !important;
+            z-index: 999999 !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+            max-height: 200px !important;
+            overflow-y: auto !important;
+        }
+        
+        .goog-te-menu-frame .goog-te-menu2 {
+            background: white !important;
+            border-radius: 0.5rem !important;
+        }
+        
+        /* Fix z-index issues with navbar and Google Translate */
+        nav {
+            position: relative !important;
+            z-index: 10002 !important;
+        }
+        
+        /* Fix Google Translate widget positioning */
+        #google_translate_element {
+            position: relative !important;
+            z-index: 10001 !important;
+        }
+        
+        /* Prevent Google Translate from affecting navbar layout */
+        .goog-te-gadget {
+            font-size: 0 !important;
+            line-height: 0 !important;
+        }
+        
+        .goog-te-gadget > span {
+            vertical-align: top !important;
+        }
+        
+        .goog-te-gadget .goog-te-combo {
+            margin: 0 !important;
+            vertical-align: top !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Modern Simple Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo Section -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="/" class="flex items-center hover:opacity-80 transition-opacity">
+                        <div class="bg-blue-600 rounded-lg p-2 mr-3">
+                            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="text-lg font-bold text-gray-900">Telemedicine</span>
+                            <span class="hidden sm:inline text-sm text-gray-500 ml-2">Rural Healthcare</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Center Navigation (Desktop) -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="/dashboard" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Dashboard</a>
+                    <a href="/book_appointment" class="text-blue-600 hover:text-blue-700 font-medium transition-colors border-b-2 border-blue-600 pb-1">Book Appointment</a>
+                    <a href="/patient/appointments" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">My Appointments</a>
+                    <a href="/symptom-checker" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Health Check</a>
+                </div>
+
+                <!-- Right Section -->
+                <div class="flex items-center space-x-4">
+                    <!-- Google Translate Widget -->
+                    <div class="google-translate-container">
+                        <div id="google_translate_element"></div>
+                    </div>
+                    
+                    <!-- Logout Button -->
+                    <a href="/logout" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm">
+                        Logout
+                    </a>
+                    
+                    <!-- Profile Dropdown -->
+                    <div class="relative">
+                        <button class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                            <div class="bg-blue-600 rounded-full w-8 h-8 flex items-center justify-center">
+                                <span class="text-white font-semibold text-sm notranslate">
+                                    {{ user.name.split()[0][0] if user.name.split() else '' }}{{ user.name.split()[-1][0] if user.name.split()|length > 1 else '' }}
+                                </span>
+                            </div>
+                            <div class="hidden sm:block text-left">
+                                <p class="text-sm font-semibold text-gray-900 notranslate">{{ user.name }}</p>
+                                <p class="text-xs text-gray-500 notranslate">{{ user.username }}</p>
+                            </div>
+                            <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 hidden">
+                            <div class="py-1">
+                                <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Profile</a>
+                                <a href="/symptom-history" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Health History</a>
+                                <a href="/patient/prescriptions" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Prescriptions</a>
+                                <hr class="my-1 border-gray-200">
+                                <a href="/logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-50">Sign out</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Menu Button -->
+                    <button onclick="toggleMobileMenu()" class="md:hidden p-2 text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-lg">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div id="mobileMenu" class="md:hidden hidden bg-white border-t border-gray-200">
+                <div class="px-4 py-4 space-y-4">
+                    <a href="/dashboard" class="block text-gray-700 hover:text-blue-600 font-medium">Dashboard</a>
+                    <a href="/book_appointment" class="block text-blue-600 hover:text-blue-700 font-medium">Book Appointment</a>
+                    <a href="/patient/appointments" class="block text-gray-700 hover:text-blue-600 font-medium">My Appointments</a>
+                    <a href="/symptom-checker" class="block text-gray-700 hover:text-blue-600 font-medium">Health Check</a>
+                    <div class="border-t border-gray-200 pt-4">
+                        <a href="/logout" class="block text-red-600 hover:text-red-700 font-medium">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Book Appointment</h1>
+            <p class="text-gray-600">Schedule a consultation with our healthcare professionals</p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border p-8">
+            {% if error %}
+            <div class="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                <div class="flex">
+                    <svg class="h-5 w-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                    <p class="ml-3 text-sm text-red-700">{{ error }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <form method="POST" class="space-y-6">
+                <!-- Doctor Selection -->
+                <div>
+                    <label for="doctor_id" class="block text-sm font-medium text-gray-700 mb-2">Select Doctor</label>
+                    <select id="doctor_id" name="doctor_id" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Choose a doctor...</option>
+                        {% for doctor in doctors %}
+                        <option value="{{ doctor[0] }}">{{ doctor[1] }} - {{ doctor[2] or 'General Medicine' }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Appointment Type -->
+                <div>
+                    <label for="appointment_type" class="block text-sm font-medium text-gray-700 mb-2">Consultation Type</label>
+                    <select id="appointment_type" name="appointment_type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="video">Video Consultation</option>
+                        <option value="chat">Text Chat</option>
+                        <option value="in_person">In-Person Visit</option>
+                    </select>
+                </div>
+
+                <!-- Date Selection -->
+                <div>
+                    <label for="appointment_date" class="block text-sm font-medium text-gray-700 mb-2">Preferred Date</label>
+                    <input type="date" id="appointment_date" name="appointment_date" required
+                           min="{{ min_date }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+
+                <!-- Time Selection -->
+                <div>
+                    <label for="appointment_time" class="block text-sm font-medium text-gray-700 mb-2">Preferred Time</label>
+                    <select id="appointment_time" name="appointment_time" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Select time...</option>
+                        <option value="09:00:00">9:00 AM</option>
+                        <option value="09:30:00">9:30 AM</option>
+                        <option value="10:00:00">10:00 AM</option>
+                        <option value="10:30:00">10:30 AM</option>
+                        <option value="11:00:00">11:00 AM</option>
+                        <option value="11:30:00">11:30 AM</option>
+                        <option value="14:00:00">2:00 PM</option>
+                        <option value="14:30:00">2:30 PM</option>
+                        <option value="15:00:00">3:00 PM</option>
+                        <option value="15:30:00">3:30 PM</option>
+                        <option value="16:00:00">4:00 PM</option>
+                        <option value="16:30:00">4:30 PM</option>
+                        <option value="17:00:00">5:00 PM</option>
+                    </select>
+                </div>
+
+                <!-- Symptoms/Reason -->
+                <div>
+                    <label for="symptoms" class="block text-sm font-medium text-gray-700 mb-2">Symptoms or Reason for Visit</label>
+                    <textarea id="symptoms" name="symptoms" rows="4" placeholder="Please describe your symptoms or reason for consultation..."
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex space-x-4">
+                    <button type="submit" class="flex-1 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                        Book Appointment
+                    </button>
+                    <a href="{{ url_for('dashboard') }}" class="flex-1 bg-gray-200 text-gray-800 py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors font-medium text-center">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Set minimum date to tomorrow
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.getElementById('appointment_date');
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const minDate = tomorrow.toISOString().split('T')[0];
+            dateInput.min = minDate;
+
+            // Set default date to tomorrow
+            dateInput.value = minDate;
+        });
+
+        // Profile dropdown functions
+        function toggleProfile() {
+            const dropdown = document.getElementById('profileDropdown');
+            if (dropdown.classList.contains('hidden')) {
+                dropdown.classList.remove('hidden');
+            } else {
+                dropdown.classList.add('hidden');
+            }
+        }
+
+        // Mobile menu functions
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            if (mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.remove('hidden');
+            } else {
+                mobileMenu.classList.add('hidden');
+            }
+        }
+
+        // Close profile dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const profileDropdown = document.getElementById('profileDropdown');
+            const profileButton = e.target.closest('button[onclick="toggleProfile()"]');
+            if (!profileDropdown.contains(e.target) && !profileButton) {
+                profileDropdown.classList.add('hidden');
+            }
+        });
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const mobileMenu = document.getElementById('mobileMenu');
+            const mobileMenuButton = e.target.closest('button[onclick="toggleMobileMenu()"]');
+            if (!mobileMenu.contains(e.target) && !mobileMenuButton && !mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+    </script>
+
+    <!-- Google Translate Script -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement(
+                {
+                    pageLanguage: 'en',
+                    includedLanguages: 'hi,pa,en,ur,bn,ta,te,ml,kn,gu,mr,or,as,ne',
+                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                    autoDisplay: false
+                }, 
+                'google_translate_element'
+            );
+            
+            // Restore saved language preference
+            setTimeout(function() {
+                restoreSelectedLanguage();
+                monitorLanguageChanges();
+            }, 1000);
+        }
+
+        function saveSelectedLanguage() {
+            var selectElement = document.querySelector('.goog-te-combo');
+            if (selectElement && selectElement.value) {
+                localStorage.setItem('googtrans', '/en/' + selectElement.value);
+                localStorage.setItem('selectedLanguage', selectElement.value);
+                console.log('Language saved:', selectElement.value);
+            }
+        }
+
+        function restoreSelectedLanguage() {
+            var savedLanguage = localStorage.getItem('selectedLanguage');
+            var selectElement = document.querySelector('.goog-te-combo');
+            
+            if (savedLanguage && selectElement) {
+                selectElement.value = savedLanguage;
+                selectElement.dispatchEvent(new Event('change'));
+                console.log('Language restored:', savedLanguage);
+            }
+        }
+
+        function monitorLanguageChanges() {
+            var selectElement = document.querySelector('.goog-te-combo');
+            if (selectElement) {
+                selectElement.addEventListener('change', function() {
+                    saveSelectedLanguage();
+                });
+            }
+        }
+
+        // Hide Google Translate banner
+        function hideGoogleTranslateBanner() {
+            var banner = document.querySelector('.goog-te-banner-frame');
+            if (banner) {
+                banner.style.display = 'none';
+            }
+            document.body.style.top = '0px';
+        }
+
+        // Check for banner periodically
+        setInterval(hideGoogleTranslateBanner, 100);
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>

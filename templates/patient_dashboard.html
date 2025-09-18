@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Telemedicine Rural Nabha</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#2563eb',
+                        'primary-dark': '#1d4ed8',
+                        'secondary': '#10b981',
+                        'secondary-dark': '#059669'
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Base Styles */
+        :root {
+            /* Main Colors */
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #60a5fa;
+            --secondary: #10b981;
+            --secondary-dark: #059669;
+            --secondary-light: #34d399;
+            --accent: #8b5cf6;
+            --accent-dark: #7c3aed;
+            --accent-light: #a78bfa;
+            
+            /* Status Colors */
+            --success: #22c55e;
+            --success-light: #86efac;
+            --warning: #f59e0b;
+            --warning-light: #fcd34d;
+            --danger: #ef4444;
+            --danger-light: #fca5a5;
+            
+            /* Grays */
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--gray-50);
+            color: var(--gray-800);
+            min-height: 100vh;
+        }
+
+        /* Typography System */
+        .heading-font {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Interactive Elements */
+        .quick-action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.625rem 1.25rem;
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 0.75rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
+        }
+
+        .quick-action-btn:hover {
+            color: var(--primary);
+            background-color: var(--gray-50);
+            border-color: var(--gray-200);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .notification-btn {
+            position: relative;
+            padding: 0.625rem;
+            color: var(--gray-500);
+            border-radius: 0.75rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+        }
+
+        .notification-btn:hover {
+            color: var(--primary);
+            background: var(--gray-100);
+            border-color: var(--gray-300);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -0.375rem;
+            right: -0.375rem;
+            height: 1.5rem;
+            width: 1.5rem;
+            background-color: var(--danger);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Notification Dropdown Styles */
+        .notification-dropdown {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            margin-top: 0.5rem;
+            width: 20rem;
+            max-width: 90vw;
+            background: white;
+            border-radius: 0.75rem;
+            border: 1px solid var(--gray-200);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transform-origin: top right;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 50;
+        }
+
+        .notification-dropdown.hidden {
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.95) translateY(-10px);
+        }
+
+        .notification-dropdown:not(.hidden) {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1) translateY(0);
+        }
+
+        .notification-item {
+            transition: background-color 0.15s ease;
+        }
+
+        .notification-item:hover {
+            background-color: var(--gray-50);
+        }
+
+        .notification-item.unread {
+            background-color: rgba(59, 130, 246, 0.05);
+            border-left: 3px solid var(--primary);
+        }
+
+        /* Feature Card Styles */
+        .feature-card {
+            background: white;
+            border-radius: 1.25rem;
+            padding: 2rem;
+            border: 1px solid var(--gray-200);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+            border-color: var(--gray-300);
+        }
+
+        .feature-icon-wrapper {
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s ease;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            color: white;
+        }
+
+        .feature-card:hover .feature-icon-wrapper {
+            transform: scale(1.1);
+        }
+
+        /* Custom Animations */
+        @keyframes wave {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+        }
+
+        .animate-wave {
+            animation: wave 1s ease-in-out infinite;
+            transform-origin: bottom center;
+            display: inline-block;
+        }
+        }
+            padding: 1.5rem;
+            min-height: 200px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+            border-color: var(--gray-300);
+        }
+
+        /* Card Components */
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .card-description {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .gradient-icon-bg {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover .gradient-icon-bg {
+            transform: scale(1.1);
+        }
+
+        /* Stats Styles */
+        .stats-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.25rem;
+            border: 1px solid var(--gray-200);
+            transition: all 0.3s ease;
+        }
+
+        .stats-card:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+            border-color: var(--gray-300);
+        }
+
+        .stats-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stats-label {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+
+        /* Button Styles */
+        .btn {
+            font-weight: 500;
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+            transform: translateY(-1px);
+        }
+
+        /* Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            max-width: 1536px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+
+            .feature-card {
+                min-height: 180px;
+                padding: 1.25rem;
+            }
+
+            .gradient-icon-bg {
+                width: 3rem;
+                height: 3rem;
+            }
+
+            .card-title {
+                font-size: 1rem;
+            }
+
+            .stats-value {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        /* Utility Classes */
+        .shadow-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .shadow-hover:hover {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                       0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        /* Google Translate Widget Styling */
+        #google_translate_element {
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        #google_translate_element .goog-te-combo {
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 8px 12px 8px 35px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            outline: none;
+            cursor: pointer;
+            min-width: 140px;
+            height: 38px;
+            text-align: left;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+        
+        #google_translate_element .goog-te-combo:hover {
+            border-color: #2563eb;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        #google_translate_element .goog-te-combo:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        /* Hide only the banner frame - keep functionality */
+        .goog-te-banner-frame {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        
+        /* Hide the top frame that appears when translating */
+        body {
+            top: 0px !important;
+        }
+        
+        /* Prevent Google Translate from adding margin to body */
+        body.translated-ltr {
+            top: 0 !important;
+        }
+        
+        body.translated-rtl {
+            top: 0 !important;
+        }
+        
+        /* Fix z-index issues with navbar and Google Translate */
+        nav {
+            position: relative !important;
+            z-index: 9999 !important;
+        }
+        
+        /* Ensure Google Translate dropdown appears correctly */
+        .goog-te-menu-frame {
+            z-index: 999999 !important;
+            border-radius: 0.5rem !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+            max-height: 200px !important;
+            overflow-y: auto !important;
+        }
+        
+        .goog-te-menu-frame .goog-te-menu2 {
+            background: white !important;
+            border-radius: 0.5rem !important;
+        }
+        
+        /* Ensure translate widget doesn't interfere with layout */
+        .language-selector {
+            position: relative !important;
+            z-index: 10000 !important;
+        }
+        
+        /* Fix Google Translate widget positioning */
+        #google_translate_element {
+            position: relative !important;
+            z-index: 10001 !important;
+        }
+        
+        /* Prevent Google Translate from affecting navbar layout */
+        .goog-te-gadget {
+            font-size: 0 !important;
+            line-height: 0 !important;
+        }
+        
+        .goog-te-gadget > span {
+            vertical-align: top !important;
+        }
+        
+        .goog-te-gadget .goog-te-combo {
+            margin: 0 !important;
+            vertical-align: top !important;
+        }
+        
+        /* Hide notification bar but keep widget functional */
+        .skiptranslate iframe {
+            visibility: hidden !important;
+            height: 0 !important;
+        }
+        
+        /* Hide translate tooltips */
+        .translate-tooltip {
+            display: none !important;
+        }
+        
+        /* Style the Google Translate widget itself */
+        .goog-te-gadget-simple {
+            background-color: transparent !important;
+            border: none !important;
+            font-size: 14px !important;
+            font-family: 'Inter', sans-serif !important;
+            display: inline-block !important;
+        }
+        
+        .goog-te-gadget-simple .goog-te-menu-value {
+            color: #374151 !important;
+            font-weight: 500 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        /* Hide the "Select Language" text but keep dropdown functional */
+        .goog-te-gadget-simple .goog-te-menu-value span:first-child {
+            display: none !important;
+        }
+        
+        /* Keep the actual language text visible */
+        .goog-te-gadget-simple .goog-te-menu-value span:last-child {
+            color: #374151 !important;
+            font-weight: 500 !important;
+        }
+        
+        /* Hide Google Translate icon but keep our custom one */
+        .goog-te-gadget-icon {
+            display: none !important;
+        }
+        
+        /* Ensure the dropdown is clickable */
+        .goog-te-gadget-simple a {
+            text-decoration: none !important;
+            color: #374151 !important;
+        }
+        
+        /* Style the actual dropdown when it appears */
+        .goog-te-combo {
+            background: white !important;
+            border: 1px solid #d1d5db !important;
+            border-radius: 8px !important;
+            padding: 8px 12px 8px 35px !important;
+            font-size: 14px !important;
+            color: #374151 !important;
+            min-width: 140px !important;
+            height: 38px !important;
+        }
+        
+        /* Custom language selector styling */
+        .language-selector {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            vertical-align: middle;
+        }
+        
+        .language-selector::before {
+            content: "🌐";
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            pointer-events: none;
+            z-index: 10;
+        }
+    </style>
+                    
+    </footer>
+
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97ee524542823e92',t:'MTc1NzgzNjUxOS4wMDAwMDA='};var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+        
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Modern Simple Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200 sticky top-0" style="z-index: 10002 !important;">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo Section -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="/" class="flex items-center hover:opacity-80 transition-opacity">
+                        <div class="bg-blue-600 rounded-lg p-2 mr-3">
+                            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="text-lg font-bold text-gray-900">Telemedicine</span>
+                            <span class="hidden sm:inline text-sm text-gray-500 ml-2">Rural Healthcare</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Center Navigation (Desktop) -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="/dashboard" class="text-blue-600 hover:text-blue-700 font-medium transition-colors border-b-2 border-blue-600 pb-1">Dashboard</a>
+                    <a href="/book_appointment" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Book Appointment</a>
+                    <a href="/patient/appointments" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">My Appointments</a>
+                    <a href="/symptom-checker" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Health Check</a>
+                </div>
+
+                <!-- Right Section -->
+                <div class="flex items-center space-x-4">
+                    <!-- Google Translate Widget -->
+                    <div class="language-selector flex items-center">
+                        <div id="google_translate_element" class="hidden md:flex items-center"></div>
+                    </div>
+                    
+                    <!-- Emergency SOS Button -->
+                    
+                    <!-- Notifications Container -->
+                    <div class="relative">
+                        <button onclick="toggleNotifications()" class="relative p-2 text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                            </svg>
+                            <span id="notificationBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+                        </button>
+
+                        <!-- Notifications Dropdown -->
+                        <div id="notificationsDropdown" class="notification-dropdown hidden">
+                            <div class="p-4 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900">Notifications</h3>
+                            </div>
+                            <div id="notificationsList" class="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                                <div class="p-4 text-center text-gray-500">
+                                    <p>Loading notifications...</p>
+                                </div>
+                            </div>
+                            <div class="p-3 border-t border-gray-200">
+                                <a href="#" class="btn btn-primary w-full text-sm justify-center">View All Notifications</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Logout Button -->
+                    <a href="/logout" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm">
+                        Logout
+                    </a>
+                    
+                    <!-- Profile Dropdown -->
+                    <div class="relative">
+                        <button onclick="toggleProfile()" class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                            <div class="bg-blue-600 rounded-full w-8 h-8 flex items-center justify-center">
+                                <span class="text-white font-semibold text-sm notranslate">
+                                    {{ user.name.split()[0][0] if user.name.split() else '' }}{{ user.name.split()[-1][0] if user.name.split()|length > 1 else '' }}
+                                </span>
+                            </div>
+                            <div class="hidden sm:block text-left">
+                                <p class="text-sm font-semibold text-gray-900 notranslate">{{ user.name }}</p>
+                                <p class="text-xs text-gray-500 notranslate">{{ user.username }}</p>
+                            </div>
+                            <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div id="profileDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 hidden">
+                            <div class="py-1">
+                                <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Profile</a>
+                                <a href="/symptom-history" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Health History</a>
+                                <a href="/patient/prescriptions" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Prescriptions</a>
+                                <hr class="my-1 border-gray-200">
+                                <a href="/logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-50">Sign out</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Menu Button -->
+                    <button onclick="toggleMobileMenu()" class="md:hidden p-2 text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-lg">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div id="mobileMenu" class="md:hidden hidden bg-white border-t border-gray-200">
+                <div class="px-4 py-4 space-y-4">
+                    <a href="/dashboard" class="block text-blue-600 hover:text-blue-700 font-medium">Dashboard</a>
+                    <a href="/book_appointment" class="block text-gray-700 hover:text-blue-600 font-medium">Book Appointment</a>
+                    <a href="/patient/appointments" class="block text-gray-700 hover:text-blue-600 font-medium">My Appointments</a>
+                    <a href="/symptom-checker" class="block text-gray-700 hover:text-blue-600 font-medium">Health Check</a>
+                    <div class="border-t border-gray-200 pt-4">
+                        <a href="/profile" class="block text-gray-700 hover:text-blue-600 font-medium">Profile</a>
+                        <a href="/logout" class="block text-red-600 hover:text-red-700 font-medium">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Dashboard -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Welcome Section -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Welcome back, <span class="notranslate">{{ user.username }}</span>! 🏥</h1>
+            <p class="text-gray-600">Here's your health dashboard - स्वास्थ्य डैशबोर्ड</p>
+        </div>
+
+   
+        <!-- Main Features Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+            <!-- Feature 1: AI Symptom Checker -->
+            <div class="feature-card animate-fadeIn" onclick="openFeature('symptom-checker')">
+                <div class="feature-icon-wrapper">
+                    <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                </div>
+                <h3 class="heading-font text-xl font-semibold mb-2 text-gray-900">AI Symptom Checker</h3>
+                <p class="text-gray-600 text-sm mb-4">Get intelligent insights about your health symptoms with our AI-powered system</p>
+                <div class="inline-flex items-center text-primary font-medium text-sm group">
+                    <span>Start Check</span>
+                    <svg class="h-4 w-4 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Video Consultation -->
+            <div class="feature-card animate-fadeIn" style="animation-delay: 100ms;" onclick="window.location.href='/video_consultation'">
+                <div class="feature-icon-wrapper" style="background: linear-gradient(135deg, var(--secondary-light), var(--secondary));">
+                    <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <h3 class="heading-font text-xl font-semibold mb-2 text-gray-900">Video Consultation</h3>
+                <p class="text-gray-600 text-sm mb-4">Connect with healthcare experts through secure, high-quality video calls</p>
+                <div class="inline-flex items-center text-secondary font-medium text-sm group">
+                    <span>Book Now</span>
+                    <svg class="h-5 w-5 ml-2 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Book Appointment -->
+            <div class="feature-card animate-fadeIn" style="animation-delay: 200ms;" onclick="window.location.href='/book_appointment'">
+                <div class="feature-icon-wrapper" style="background: linear-gradient(135deg, var(--accent-light), var(--accent));">
+                    <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <h3 class="heading-font text-xl font-semibold mb-2 text-gray-900">Book Appointment</h3>
+                <p class="text-gray-600 text-sm mb-4">Schedule consultations with our experienced healthcare providers</p>
+                <div class="inline-flex items-center text-accent font-medium text-sm group">
+                    <span>Schedule Now</span>
+                    <svg class="h-4 w-4 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Feature 3: Prescription Manager -->
+            <div class="feature-card animate-fadeIn" style="animation-delay: 300ms;" onclick="window.location.href='/patient/prescriptions'">
+                <div class="feature-icon-wrapper" style="background: linear-gradient(135deg, var(--success-light), var(--success));">
+                    <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <h3 class="heading-font text-xl font-semibold mb-2 text-gray-900">My Prescriptions</h3>
+                <p class="text-gray-600 text-sm mb-4">Access and manage all your medical prescriptions in one place</p>
+                <div class="inline-flex items-center text-success font-medium text-sm group">
+                    <span>View All</span>
+                    <svg class="h-4 w-4 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Feature 4: Local Pharmacy -->
+            <div class="feature-card animate-fadeIn" style="animation-delay: 400ms;" onclick="window.location.href='/pharmacy_network'">
+                <div class="feature-icon-wrapper" style="background: linear-gradient(135deg, var(--warning-light), var(--warning));">
+                    <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                </div>
+                <h3 class="heading-font text-xl font-semibold mb-2 text-gray-900">Local Pharmacy</h3>
+                <p class="text-gray-600 text-sm mb-4">Find and order medicines from trusted local pharmacies</p>
+                <div class="inline-flex items-center text-warning font-medium text-sm group">
+                    <span>Find Pharmacy</span>
+                    <svg class="h-4 w-4 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Feature 5: Health Records -->
+            <div class="feature-card animate-fadeIn" style="animation-delay: 500ms;" onclick="window.location.href='/patient/records'">
+                <div class="feature-icon-wrapper" style="background: linear-gradient(135deg, var(--primary-light), var(--primary));">
+                    <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m-5-8h.01M9 16h.01M13 16h.01M15 12h.01M12 20h9l-9-9-9 9h9z"></path>
+                    </svg>
+                </div>
+                <h3 class="heading-font text-xl font-semibold mb-2 text-gray-900">Health Records</h3>
+                <p class="text-gray-600 text-sm mb-4">Keep track of your complete medical history in digital format</p>
+                <div class="inline-flex items-center text-primary font-medium text-sm group">
+                    <span>View Records</span>
+                    <svg class="h-4 w-4 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Removed Chat with Doctor as requested -->
+
+            <!-- Removed Eco-Health Rewards, Emergency Services, and Health Tips as requested -->
+        </div>
+
+        
+    <!-- Feature Modal -->
+    <div id="featureModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fadeIn" style="display: none;">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm transition-opacity"></div>
+        <div class="relative bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl transform transition-all">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modalTitle" class="text-xl font-bold text-gray-900"></h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div id="modalContent" class="text-gray-600 mb-8 leading-relaxed"></div>
+            <div class="flex space-x-4">
+                <button onclick="closeModal()" class="btn flex-1 border border-gray-200 bg-white text-gray-700 hover:bg-gray-50">
+                    Close
+                </button>
+                <button id="modalAction" class="btn btn-primary flex-1">
+                    Get Started
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="medicines-data" data-medicines="{{ medicines|tojson }}"></div>
+
+    <script>
+        function openFeature(feature) {
+            // Direct route handling for specific features
+            if (feature === 'symptom-checker') {
+                window.location.href = '/symptom-checker';
+                return;
+            }
+
+            const modal = document.getElementById('featureModal');
+            const title = document.getElementById('modalTitle');
+            const content = document.getElementById('modalContent');
+            const action = document.getElementById('modalAction');
+            
+            const features = {
+                'symptom-checker': {
+                    title: 'AI Symptom Checker',
+                    content: 'Our intelligent symptom checker helps you understand your health concerns. Answer a few questions about your symptoms and get personalized health insights and recommendations for next steps.',
+                    action: 'Start Symptom Check'
+                },
+                'video-consultation': {
+                    title: 'Video Consultation',
+                    content: 'Connect with qualified doctors through secure video calls. Choose from available specialists, schedule appointments at your convenience, and get professional medical advice from home.',
+                    action: 'Book Consultation'
+                },
+                'prescriptions': {
+                    title: 'My Prescriptions',
+                    content: 'View all your prescriptions in one place. Track medication schedules, set reminders, and easily reorder medicines from your trusted local pharmacy.',
+                    action: 'View Prescriptions'
+                },
+                'health-records': {
+                    title: 'Digital Health Records',
+                    content: 'Access your complete medical history, test reports, consultation notes, and health trends. Share records securely with doctors during consultations.',
+                    action: 'View Records'
+                },
+                // Removed 'rewards', 'emergency', and 'health-tips' features as per request
+            };
+            
+            const featureData = features[feature];
+            if (!featureData) return;
+            
+            title.textContent = featureData.title;
+            content.innerHTML = featureData.content;
+            action.textContent = featureData.action;
+            
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('featureModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('featureModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Notification functions
+        function toggleNotifications() {
+            const dropdown = document.getElementById('notificationsDropdown');
+            if (dropdown.classList.contains('hidden')) {
+                loadNotifications();
+                dropdown.classList.remove('hidden');
+            } else {
+                dropdown.classList.add('hidden');
+            }
+        }
+
+        async function loadNotifications() {
+            try {
+                const response = await fetch('/api/notifications');
+                const notifications = await response.json();
+
+                const container = document.getElementById('notificationsList');
+                const badge = document.getElementById('notificationBadge');
+
+                // Update badge count
+                const unreadCount = notifications.filter(n => !n.is_read).length;
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+
+                if (notifications.length === 0) {
+                    container.innerHTML = `
+                        <div class="p-4 text-center text-gray-500">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                            </svg>
+                            <p class="mt-2">No notifications</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                notifications.forEach(notification => {
+                    const isRead = notification.is_read;
+                    const typeClass = {
+                        'appointment_approved': 'text-green-600',
+                        'appointment_declined': 'text-red-600',
+                        'appointment_reminder': 'text-blue-600',
+                        'prescription_ready': 'text-purple-600',
+                        'general': 'text-gray-600'
+                    }[notification.type] || 'text-gray-600';
+
+                    const typeIcon = {
+                        'appointment_approved': '✅',
+                        'appointment_declined': '❌',
+                        'appointment_reminder': '⏰',
+                        'prescription_ready': '💊',
+                        'general': 'ℹ️'
+                    }[notification.type] || 'ℹ️';
+
+                    html += `
+                        <div class="notification-item ${!isRead ? 'unread' : ''} p-4 border-b border-gray-100 cursor-pointer" onclick="markAsRead(${notification.id})">
+                            <div class="flex items-start space-x-3">
+                                <div class="flex-shrink-0">
+                                    <span class="text-lg">${typeIcon}</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 truncate">${notification.title}</p>
+                                    <p class="text-sm text-gray-600 mt-1 line-clamp-2">${notification.message}</p>
+                                    <div class="flex items-center justify-between mt-2">
+                                        <p class="text-xs ${typeClass} font-medium">${formatDate(notification.created_at)}</p>
+                                        ${!isRead ? '<div class="w-2 h-2 bg-blue-500 rounded-full"></div>' : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                document.getElementById('notificationsList').innerHTML = `
+                    <div class="p-4 text-center text-gray-500">
+                        <p>Error loading notifications</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function markAsRead(notificationId) {
+            try {
+                await fetch(`/api/notifications/${notificationId}/read`, {
+                    method: 'POST'
+                });
+                loadNotifications(); // Refresh notifications
+            } catch (error) {
+                console.error('Error marking notification as read:', error);
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diff = now - date;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+
+            if (minutes < 1) return 'Just now';
+            if (minutes < 60) return `${minutes}m ago`;
+            if (hours < 24) return `${hours}h ago`;
+            if (days < 7) return `${days}d ago`;
+
+            return date.toLocaleDateString();
+        }
+
+        // Close notifications dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('notificationsDropdown');
+            const notificationContainer = dropdown.parentElement;
+            const notificationButton = notificationContainer.querySelector('button[onclick="toggleNotifications()"]');
+            
+            // Check if click is outside the notification container
+            if (!notificationContainer.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // Load notifications on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadNotifications();
+            initializeSocketIO();
+        });
+
+        // Initialize Socket.IO for real-time notifications
+        function initializeSocketIO() {
+            const socket = io();
+            
+            // Join patient-specific room for targeted notifications
+            socket.emit('join', {
+                username: '{{ session.username }}',
+                room: 'patient_{{ session.user_id }}'
+            });
+            
+            // Listen for appointment notifications
+            socket.on('appointment_notification', function(data) {
+                console.log('Received appointment notification:', data);
+                
+                // Show browser notification if supported
+                if (Notification.permission === 'granted') {
+                    new Notification(data.title, {
+                        body: data.message,
+                        icon: '/static/logo.png',
+                        badge: '/static/logo.png'
+                    });
+                }
+                
+                // Show in-page notification
+                showInPageNotification(data.title, data.message, 'success');
+                
+                // Refresh notifications list
+                loadNotifications();
+            });
+            
+            // Request notification permission
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        }
+
+        // Show in-page notification banner
+        function showInPageNotification(title, message, type = 'info') {
+            const notificationHtml = `
+                <div id="inPageNotification" class="fixed top-4 right-4 max-w-sm w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 transform transition-all duration-300 ease-in-out">
+                    <div class="p-4">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <svg class="h-6 w-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div class="ml-3 w-0 flex-1">
+                                <p class="text-sm font-medium text-gray-900">${title}</p>
+                                <p class="mt-1 text-sm text-gray-500">${message}</p>
+                            </div>
+                            <div class="ml-4 flex-shrink-0 flex">
+                                <button onclick="hideInPageNotification()" class="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Remove existing notification if any
+            const existing = document.getElementById('inPageNotification');
+            if (existing) {
+                existing.remove();
+            }
+            
+            // Add new notification
+            document.body.insertAdjacentHTML('beforeend', notificationHtml);
+            
+            // Auto-hide after 10 seconds
+            setTimeout(() => {
+                hideInPageNotification();
+            }, 10000);
+        }
+
+        function hideInPageNotification() {
+            const notification = document.getElementById('inPageNotification');
+            if (notification) {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }
+        }
+
+        // Profile dropdown functions
+        function toggleProfile() {
+            const dropdown = document.getElementById('profileDropdown');
+            if (dropdown.classList.contains('hidden')) {
+                dropdown.classList.remove('hidden');
+            } else {
+                dropdown.classList.add('hidden');
+            }
+        }
+
+        // Mobile menu functions
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            if (mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.remove('hidden');
+            } else {
+                mobileMenu.classList.add('hidden');
+            }
+        }
+
+        // Close profile dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const profileDropdown = document.getElementById('profileDropdown');
+            const profileButton = e.target.closest('button[onclick="toggleProfile()"]');
+            if (!profileDropdown.contains(e.target) && !profileButton) {
+                profileDropdown.classList.add('hidden');
+            }
+
+            // Close mobile menu when clicking outside
+            const mobileMenu = document.getElementById('mobileMenu');
+            const mobileButton = e.target.closest('button[onclick="toggleMobileMenu()"]');
+            if (!mobileMenu.contains(e.target) && !mobileButton) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+    </script>
+
+    <!-- Emergency SOS Button -->
+    <div id="sosContainer" style="position: fixed; bottom: 30px; right: 30px; z-index: 1000;">
+        <button id="sosBtn" style="
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.2;
+            position: relative;
+            overflow: hidden;
+        " onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 12px 25px rgba(220, 38, 38, 0.6)'" 
+           onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 8px 20px rgba(220, 38, 38, 0.4)'">
+            <svg style="width: 24px; height: 24px; margin-bottom: 2px;" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            <span style="font-size: 12px;">SOS</span>
+        </button>
+        
+        <!-- SOS Loading Indicator -->
+        <div id="sosLoading" style="
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            text-align: center;
+            white-space: nowrap;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        ">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="
+                    width: 20px;
+                    height: 20px;
+                    border: 2px solid #ffffff40;
+                    border-top: 2px solid #ffffff;
+                    border-radius: 50%;
+                    animation: spin 1s linear infinite;
+                "></div>
+                <span>Sending SOS Alert...</span>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        #sosBtn:active {
+            transform: scale(0.95) !important;
+        }
+        
+        .sos-pulse {
+            animation: pulse 0.8s ease-in-out infinite;
+        }
+    </style>
+
+    <script>
+        let sosTimeout;
+        let isSOSSending = false;
+
+        document.getElementById('sosBtn').addEventListener('click', function() {
+            if (isSOSSending) return;
+            
+            // Add visual feedback
+            this.classList.add('sos-pulse');
+            
+            // Show confirmation dialog
+            if (confirm('🚨 EMERGENCY ALERT 🚨\n\nThis will send an immediate SOS alert to all available doctors with your location.\n\nAre you sure you want to proceed?')) {
+                sendSOSAlert();
+            } else {
+                this.classList.remove('sos-pulse');
+            }
+        });
+
+        function sendSOSAlert() {
+            if (isSOSSending) return;
+            
+            isSOSSending = true;
+            const sosBtn = document.getElementById('sosBtn');
+            const sosLoading = document.getElementById('sosLoading');
+            
+            // Show loading indicator
+            sosLoading.style.display = 'block';
+            sosBtn.style.opacity = '0.7';
+            
+            // Get GPS location
+            if (navigator.geolocation) {
+                // Set timeout for location request
+                const locationTimeout = setTimeout(() => {
+                    sendSOS(null, null, 'Location timeout - sending without coordinates');
+                }, 10000); // 10 second timeout
+
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        clearTimeout(locationTimeout);
+                        sendSOS(position.coords.latitude, position.coords.longitude);
+                    },
+                    function(error) {
+                        clearTimeout(locationTimeout);
+                        console.log('Geolocation error:', error);
+                        sendSOS(null, null, 'Location access denied - sending without coordinates');
+                    },
+                    {
+                        timeout: 8000,
+                        enableHighAccuracy: true,
+                        maximumAge: 60000
+                    }
+                );
+            } else {
+                sendSOS(null, null, 'Geolocation not supported');
+            }
+        }
+
+        function sendSOS(latitude, longitude, locationError = null) {
+            const currentTime = new Date().toISOString();
+            const patientInfo = {
+                timestamp: currentTime,
+                latitude: latitude,
+                longitude: longitude,
+                locationError: locationError,
+                userAgent: navigator.userAgent,
+                pageUrl: window.location.href
+            };
+
+            fetch('/sos_alert', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(patientInfo)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Hide loading and show success
+                document.getElementById('sosLoading').style.display = 'none';
+                document.getElementById('sosBtn').style.opacity = '1';
+                document.getElementById('sosBtn').classList.remove('sos-pulse');
+                
+                // Success feedback
+                alert('✅ SOS ALERT SENT SUCCESSFULLY!\n\n' + 
+                      'Emergency services and available doctors have been notified.\n' + 
+                      'Alert ID: ' + (data.alertId || 'Generated') + '\n\n' + 
+                      'Please stay calm and wait for assistance.');
+                
+                isSOSSending = false;
+            })
+            .catch(error => {
+                console.error('SOS Alert Error:', error);
+                
+                // Hide loading and show error
+                document.getElementById('sosLoading').style.display = 'none';
+                document.getElementById('sosBtn').style.opacity = '1';
+                document.getElementById('sosBtn').classList.remove('sos-pulse');
+                
+                // Error feedback with retry option
+                if (confirm('❌ FAILED TO SEND SOS ALERT\n\n' + 
+                           'Error: ' + error.message + '\n\n' + 
+                           'Would you like to try again?')) {
+                    isSOSSending = false;
+                    setTimeout(() => sendSOSAlert(), 1000);
+                } else {
+                    alert('⚠️ EMERGENCY BACKUP PLAN:\n\n' + 
+                          '1. Call Emergency Services: 911\n' + 
+                          '2. Contact nearest hospital\n' + 
+                          '3. Inform family/friends\n\n' + 
+                          'Your safety is our priority!');
+                    isSOSSending = false;
+                }
+            });
+        }
+
+        // Add keyboard shortcut for SOS (Ctrl+Shift+S)
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && e.key === 'S') {
+                e.preventDefault();
+                document.getElementById('sosBtn').click();
+            }
+        });
+    </script>
+
+    <!-- Google Translate Scripts -->
+    <script type="text/javascript">
+        // Language persistence functions
+        function saveSelectedLanguage(language) {
+            localStorage.setItem('selectedLanguage', language);
+        }
+        
+        function getSelectedLanguage() {
+            return localStorage.getItem('selectedLanguage') || 'en';
+        }
+        
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'hi,ta,pa,ur,en',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
+            }, 'google_translate_element');
+            
+            // Restore previously selected language
+            setTimeout(function() {
+                restoreSelectedLanguage();
+            }, 1000);
+        }
+        
+        function restoreSelectedLanguage() {
+            const savedLanguage = getSelectedLanguage();
+            if (savedLanguage && savedLanguage !== 'en') {
+                const selectElement = document.querySelector('.goog-te-combo');
+                if (selectElement) {
+                    selectElement.value = savedLanguage;
+                    selectElement.dispatchEvent(new Event('change'));
+                }
+            }
+        }
+        
+        // Monitor language changes and save them
+        function monitorLanguageChanges() {
+            const selectElement = document.querySelector('.goog-te-combo');
+            if (selectElement) {
+                selectElement.addEventListener('change', function() {
+                    saveSelectedLanguage(this.value);
+                });
+            }
+        }
+        
+        // Function to hide only the Google Translate banner while keeping widget functional
+        function hideGoogleTranslateBanner() {
+            // Hide only the banner frame, not the widget itself
+            const banner = document.querySelector('.goog-te-banner-frame');
+            if (banner) {
+                banner.style.display = 'none';
+                banner.style.visibility = 'hidden';
+            }
+            
+            // Reset body top position that Google Translate adds
+            if (document.body.style.top && document.body.style.top !== '0px') {
+                document.body.style.top = '0px';
+                document.body.style.position = 'static';
+            }
+            
+            // Hide only notification iframes, not the functional widget
+            const iframes = document.querySelectorAll('.skiptranslate iframe');
+            iframes.forEach(function(iframe) {
+                // Only hide if it's a banner iframe, not the main widget
+                if (iframe.src && iframe.src.includes('translate_a')) {
+                    return; // Don't hide the main translate functionality
+                }
+                iframe.style.display = 'none';
+                iframe.style.visibility = 'hidden';
+            });
+        }
+        
+        // Monitor for Google Translate banner (less frequent to avoid interfering)
+        setInterval(hideGoogleTranslateBanner, 500);
+        
+        // Also hide on page load
+        window.addEventListener('load', function() {
+            setTimeout(hideGoogleTranslateBanner, 1000);
+            setTimeout(monitorLanguageChanges, 1500);
+        });
+        
+        // Make sure the widget stays visible and functional
+        setInterval(function() {
+            const widget = document.querySelector('#google_translate_element');
+            if (widget) {
+                widget.style.display = 'inline-block';
+                widget.style.visibility = 'visible';
+            }
+            
+            // Ensure the select dropdown is visible and functional
+            const combo = document.querySelector('.goog-te-combo');
+            if (combo) {
+                combo.style.display = 'block';
+                combo.style.visibility = 'visible';
+            }
+        }, 1000);
+    </script>
+    
+    <script type="text/javascript" 
+        src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
+    </script>
+
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97ee524542823e92',t:'MTc1NzgzNjUxOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

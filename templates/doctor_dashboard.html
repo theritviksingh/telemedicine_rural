@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Dashboard - Telemedicine Rural Nabha</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        :root {
+            --primary: #3B82F6;
+            --primary-dark: #1E40AF;
+            --secondary: #10B981;
+            --accent: #F59E0B;
+            --danger: #EF4444;
+            --surface: #FFFFFF;
+            --background: #F8FAFC;
+            --text: #1F2937;
+            --text-muted: #6B7280;
+        }
+        
+        body { 
+            font-family: 'Inter', sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+        }
+        
+        .glassmorphism {
+            background: rgba(248, 250, 252, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(226, 232, 240, 0.3);
+        }
+        
+        .card-modern {
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid rgba(226, 232, 240, 0.6);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card-modern:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.15);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3B82F6, #10B981, #F59E0B, #EF4444);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+        
+        .notification-dot {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .glow-icon {
+            filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.3));
+        }
+        
+        .feature-icon {
+            background: linear-gradient(135deg, var(--icon-start), var(--icon-end));
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature-icon::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: rotate(45deg);
+            transition: all 0.6s;
+            opacity: 0;
+        }
+        
+        .card-modern:hover .feature-icon::before {
+            animation: shimmer 1.5s ease-in-out;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); opacity: 0; }
+        }
+        
+        .nav-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 8px 32px -8px rgba(102, 126, 234, 0.3);
+        }
+        
+        .dashboard-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(226, 232, 240, 0.4);
+            box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .welcome-text {
+            color: #1F2937;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Responsive improvements */
+        @media (max-width: 640px) {
+            .dashboard-container {
+                margin: 0.5rem;
+                border-radius: 16px;
+            }
+        }
+
+        /* Google Translate Widget Styling */
+        .google-translate-container {
+            display: inline-block;
+        }
+
+        .google-translate-container select {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            color: #374151;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .google-translate-container select:hover {
+            border-color: #3b82f6;
+        }
+
+        .google-translate-container select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Hide Google Translate banner */
+        .goog-te-banner-frame {
+            display: none !important;
+        }
+
+        body {
+            top: 0 !important;
+        }
+
+        .goog-te-menu-value span:first-child {
+            display: none;
+        }
+
+        .goog-te-menu-value:before {
+            content: 'Translate';
+            color: #374151;
+        }
+
+        .goog-te-menu-frame {
+            border-radius: 0.5rem !important;
+            border: 1px solid #e2e8f0 !important;
+            z-index: 999999 !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+            max-height: 200px !important;
+            overflow-y: auto !important;
+        }
+        
+        .goog-te-menu-frame .goog-te-menu2 {
+            background: white !important;
+            border-radius: 0.5rem !important;
+        }
+        
+        /* Fix z-index issues with navbar and Google Translate */
+        nav {
+            position: relative !important;
+            z-index: 10002 !important;
+        }
+        
+        /* Fix Google Translate widget positioning */
+        #google_translate_element {
+            position: relative !important;
+            z-index: 10001 !important;
+        }
+        
+        /* Prevent Google Translate from affecting navbar layout */
+        .goog-te-gadget {
+            font-size: 0 !important;
+            line-height: 0 !important;
+        }
+        
+        .goog-te-gadget > span {
+            vertical-align: top !important;
+        }
+        
+        .goog-te-gadget .goog-te-combo {
+            margin: 0 !important;
+            vertical-align: top !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Modern Simple Navigation -->
+    <nav class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo Section -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="/" class="flex items-center hover:opacity-80 transition-opacity">
+                        <div class="bg-blue-600 rounded-lg p-2 mr-3">
+                            <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="text-lg font-bold text-gray-900">Telemedicine</span>
+                            <span class="hidden sm:inline text-sm text-gray-500 ml-2">Rural Healthcare</span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Center Navigation (Desktop) -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="/dashboard" class="text-blue-600 hover:text-blue-700 font-medium transition-colors border-b-2 border-blue-600 pb-1">Dashboard</a>
+                    <a href="/doctor/appointments" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Appointments</a>
+                    <a href="/doctor/patients" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Patients</a>
+                    <a href="/doctor/prescriptions" class="text-gray-700 hover:text-blue-600 font-medium transition-colors">Prescriptions</a>
+                </div>
+
+                <!-- Right Section -->
+                <div class="flex items-center space-x-4">
+                    <!-- Google Translate Widget -->
+                    <div class="google-translate-container">
+                        <div id="google_translate_element"></div>
+                    </div>
+                    
+                    <!-- Emergency Alert Status -->
+                    <div id="emergencyStatus" class="hidden flex items-center bg-red-50 border border-red-200 rounded-full px-3 py-1">
+                        <div class="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+                        <span class="text-red-700 text-xs font-medium">Emergency Active</span>
+                    </div>
+                    
+                    <!-- Notifications -->
+                    <button class="relative p-2 text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                        </svg>
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
+                    </button>
+                    
+                    <!-- Logout Button -->
+                    <a href="/logout" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm">
+                        Logout
+                    </a>
+                    
+                    <!-- Profile Dropdown -->
+                    <div class="relative">
+                        <button onclick="toggleProfile()" class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                            <div class="bg-blue-600 rounded-full w-8 h-8 flex items-center justify-center">
+                                <span class="text-white font-semibold text-sm notranslate">
+                                    {{ user.name.split()[0][0] if user.name.split() else '' }}{{ user.name.split()[-1][0] if user.name.split()|length > 1 else '' }}
+                                </span>
+                            </div>
+                            <div class="hidden sm:block text-left">
+                                <p class="text-sm font-semibold text-gray-900">Dr. <span class="notranslate">{{ user.name }}</span></p>
+                                <p class="text-xs text-gray-500 notranslate">{{ user.username }}</p>
+                            </div>
+                            <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div id="profileDropdown" class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 hidden">
+                            <div class="py-1">
+                                <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Profile</a>
+                                <hr class="my-1 border-gray-200">
+                                <a href="/logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-50">Sign out</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Menu Button -->
+                    <button onclick="toggleMobileMenu()" class="md:hidden p-2 text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-lg">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div id="mobileMenu" class="md:hidden hidden bg-white border-t border-gray-200">
+                <div class="px-4 py-4 space-y-4">
+                    <a href="/dashboard" class="block text-blue-600 hover:text-blue-700 font-medium">Dashboard</a>
+                    <a href="/doctor/appointments" class="block text-gray-700 hover:text-blue-600 font-medium">Appointments</a>
+                    <a href="/doctor/patients" class="block text-gray-700 hover:text-blue-600 font-medium">Patients</a>
+                    <a href="/doctor/prescriptions" class="block text-gray-700 hover:text-blue-600 font-medium">Prescriptions</a>
+                    <div class="border-t border-gray-200 pt-4">
+                        <a href="/profile" class="block text-gray-700 hover:text-blue-600 font-medium">Profile</a>
+                        <a href="/settings" class="block text-gray-700 hover:text-blue-600 font-medium">Settings</a>
+                        <a href="/logout" class="block text-red-600 hover:text-red-700 font-medium">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Dashboard -->
+    <div class="min-h-screen p-4 sm:p-6 lg:p-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="dashboard-container p-6 sm:p-8 lg:p-10">
+            <div class="dashboard-container p-6 sm:p-8 lg:p-10">
+                <!-- Welcome Section -->
+                <div class="mb-8 text-center">
+                    <h1 class="text-4xl sm:text-5xl font-bold welcome-text mb-4">
+                        Welcome back, Dr. <span class="notranslate">{{ user.name }}</span>! 👨‍⚕️
+                    </h1>
+                    <p class="text-gray-600 text-lg sm:text-xl mb-2">
+                        Manage your patients and consultations with ease
+                    </p>
+                    <p class="text-gray-500 text-sm">
+                        रोगी प्रबंधन और परामर्श - Empowering Rural Healthcare
+                    </p>
+                </div>
+
+                <!-- Modern Stats Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="stat-card rounded-2xl p-6 hover:scale-105 transition-all duration-300">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl w-12 h-12 flex items-center justify-center">
+                                <i class="fas fa-calendar-alt text-white text-xl"></i>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-3xl font-bold text-gray-900" id="todayAppointments">0</p>
+                                <p class="text-sm text-gray-500">+12% from yesterday</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-gray-900 font-semibold mb-1">Today's Appointments</h3>
+                            <p class="text-gray-600 text-sm">Scheduled consultations</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card rounded-2xl p-6 hover:scale-105 transition-all duration-300">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl w-12 h-12 flex items-center justify-center">
+                                <i class="fas fa-users text-white text-xl"></i>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-3xl font-bold text-gray-900" id="totalPatients">0</p>
+                                <p class="text-sm text-gray-500">+5% this month</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-gray-900 font-semibold mb-1">Total Patients</h3>
+                            <p class="text-gray-600 text-sm">Under your care</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card rounded-2xl p-6 hover:scale-105 transition-all duration-300">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl w-12 h-12 flex items-center justify-center">
+                                <i class="fas fa-prescription-bottle-alt text-white text-xl"></i>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-3xl font-bold text-gray-900" id="totalPrescriptions">0</p>
+                                <p class="text-sm text-gray-500">+8% this week</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-gray-900 font-semibold mb-1">Prescriptions</h3>
+                            <p class="text-gray-600 text-sm">Written this month</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card rounded-2xl p-6 hover:scale-105 transition-all duration-300">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl w-12 h-12 flex items-center justify-center">
+                                <i class="fas fa-clock text-white text-xl"></i>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-3xl font-bold text-gray-900" id="pendingReviews">0</p>
+                                <p class="text-sm text-gray-500">Needs attention</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-gray-900 font-semibold mb-1">Pending Reviews</h3>
+                            <p class="text-gray-600 text-sm">Awaiting response</p>
+                        </div>
+                    </div>
+                </div>
+
+                </div>
+
+                <!-- Modern Feature Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+                    <!-- Appointments Feature -->
+                    <div class="card-modern rounded-2xl p-6 cursor-pointer" onclick="window.location.href='/doctor/appointments'">
+                        <div class="feature-icon rounded-2xl w-16 h-16 flex items-center justify-center mb-6" style="--icon-start: #3B82F6; --icon-end: #1E40AF;">
+                            <i class="fas fa-calendar-check text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">My Appointments</h3>
+                        <p class="text-gray-600 mb-4">View and manage patient appointments with ease</p>
+                        <div class="flex items-center text-blue-600 font-semibold group">
+                            <span>Manage Appointments</span>
+                            <i class="fas fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                    </div>
+
+                    <!-- Patient Records Feature -->
+                    <div class="card-modern rounded-2xl p-6 cursor-pointer" onclick="openFeature('patient-records')">
+                        <div class="feature-icon rounded-2xl w-16 h-16 flex items-center justify-center mb-6" style="--icon-start: #10B981; --icon-end: #047857;">
+                            <i class="fas fa-file-medical-alt text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Patient Records</h3>
+                        <p class="text-gray-600 mb-4">Access comprehensive patient health records</p>
+                        <div class="flex items-center text-green-600 font-semibold group">
+                            <span>Search Patients</span>
+                            <i class="fas fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                    </div>
+
+                    <!-- Patient Chat Feature -->
+                    <div class="card-modern rounded-2xl p-6 cursor-pointer" onclick="window.location.href='/doctor_chat'">
+                        <div class="feature-icon rounded-2xl w-16 h-16 flex items-center justify-center mb-6" style="--icon-start: #8B5CF6; --icon-end: #6D28D9;">
+                            <i class="fas fa-comments text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Patient Chat</h3>
+                        <p class="text-gray-600 mb-4">Real-time communication with patients</p>
+                        <div class="flex items-center text-purple-600 font-semibold group">
+                            <span>Open Chat</span>
+                            <i class="fas fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                    </div>
+
+                    <!-- Write Prescriptions Feature -->
+                    <div class="card-modern rounded-2xl p-6 cursor-pointer" onclick="openFeature('write-prescription')">
+                        <div class="feature-icon rounded-2xl w-16 h-16 flex items-center justify-center mb-6" style="--icon-start: #F59E0B; --icon-end: #D97706;">
+                            <i class="fas fa-prescription text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Write Prescriptions</h3>
+                        <p class="text-gray-600 mb-4">Create and manage patient prescriptions</p>
+                        <div class="flex items-center text-amber-600 font-semibold group">
+                            <span>New Prescription</span>
+                            <i class="fas fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                    </div>
+
+        
+
+                    <!-- Profile Management Feature -->
+                    <div class="card-modern rounded-2xl p-6 cursor-pointer" onclick="window.location.href='/profile'">
+                        <div class="feature-icon rounded-2xl w-16 h-16 flex items-center justify-center mb-6" style="--icon-start: #EC4899; --icon-end: #BE185D;">
+                            <i class="fas fa-user-md text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">My Profile</h3>
+                        <p class="text-gray-600 mb-4">Update your professional profile and settings</p>
+                        <div class="flex items-center text-pink-600 font-semibold group">
+                            <span>Edit Profile</span>
+                            <i class="fas fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                    </div>
+
+                    <!-- Analytics Feature -->
+                    <div class="card-modern rounded-2xl p-6 cursor-pointer" onclick="openFeature('analytics')">
+                        <div class="feature-icon rounded-2xl w-16 h-16 flex items-center justify-center mb-6" style="--icon-start: #6366F1; --icon-end: #4338CA;">
+                            <i class="fas fa-chart-bar text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">Analytics</h3>
+                        <p class="text-gray-600 mb-4">View detailed consultation statistics</p>
+                        <div class="flex items-center text-indigo-600 font-semibold group">
+                            <span>View Reports</span>
+                            <i class="fas fa-arrow-right ml-2 transform group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Appointments Section -->
+                <div class="card-modern rounded-2xl p-6 mb-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center">
+                            <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl w-12 h-12 flex items-center justify-center mr-4">
+                                <i class="fas fa-calendar-alt text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900">Recent Appointments</h2>
+                                <p class="text-gray-600">Your latest patient consultations</p>
+                            </div>
+                        </div>
+                        <a href="/doctor/appointments" class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-all hover:scale-105">
+                            View All <i class="fas fa-arrow-right ml-2"></i>
+                        </a>
+                    </div>
+                    <div id="recentAppointmentsList" class="space-y-4">
+                        <div class="text-center py-12 text-gray-500">
+                            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                            <p class="text-lg">Loading appointments...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+           
+
+        <!-- Emergency SOS Alerts Section -->
+        <div id="sosAlertsSection" class="hidden mb-8">
+            <div class="bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-200 rounded-2xl p-4 sm:p-6 shadow-lg">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 space-y-3 sm:space-y-0">
+                    <div class="flex items-center">
+                        <div class="bg-red-500 rounded-full p-2 sm:p-3 mr-3 sm:mr-4 flex-shrink-0">
+                            <svg class="h-5 w-5 sm:h-6 sm:w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-xl sm:text-2xl font-bold text-red-800">🚨 Emergency SOS Alerts</h2>
+                            <p class="text-sm sm:text-base text-red-600">Patients requiring immediate medical attention</p>
+                        </div>
+                    </div>
+                    <div class="bg-red-500 text-white px-3 py-2 sm:px-4 rounded-full font-bold text-sm sm:text-lg self-start sm:self-auto">
+                        <span id="sosAlertsCount">0</span> Active
+                    </div>
+                </div>
+                <div id="sosAlertsList" class="space-y-4">
+                    <!-- SOS alerts will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+
+      
+
+       
+
+    <!-- Modern Feature Modal -->
+    <div id="featureModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-8 border border-gray-200 shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modalTitle" class="text-2xl font-bold text-gray-900"></h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div id="modalContent" class="text-gray-600 mb-8 text-lg leading-relaxed"></div>
+            <div class="flex space-x-4">
+                <button onclick="closeModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-3 rounded-xl transition-all font-semibold border border-gray-200">
+                    Close
+                </button>
+                <button id="modalAction" class="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all font-semibold shadow-lg">
+                    Get Started
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modern Patient Search Modal -->
+    <div id="patientSearchModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[80vh] overflow-hidden border border-gray-200 shadow-2xl">
+            <div class="flex justify-between items-center p-8 border-b border-gray-200">
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-900">Search Patients</h3>
+                    <p class="text-gray-600">Find and access patient records</p>
+                </div>
+                <button onclick="closePatientSearchModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-8">
+                <div class="mb-6">
+                    <div class="relative">
+                        <input type="text" id="patientSearch" placeholder="Search by patient name or username..."
+                               class="w-full px-6 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-400 focus:border-transparent text-gray-900 placeholder-gray-500 text-lg">
+                        <i class="fas fa-search absolute right-6 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                </div>
+                <div id="patientResults" class="space-y-3 max-h-96 overflow-y-auto">
+                    <!-- Patient results will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load dashboard statistics
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardStats();
+            loadRecentAppointments();
+        });
+
+        function loadDashboardStats() {
+            // Fetch dashboard statistics from server
+            fetch('/api/doctor/stats')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('todayAppointments').textContent = data.todayAppointments || 0;
+                    document.getElementById('totalPatients').textContent = data.totalPatients || 0;
+                    document.getElementById('totalPrescriptions').textContent = data.totalPrescriptions || 0;
+                    document.getElementById('pendingReviews').textContent = data.pendingReviews || 0;
+                })
+                .catch(error => {
+                    console.error('Error loading dashboard stats:', error);
+                    // Set default values
+                    document.getElementById('todayAppointments').textContent = '0';
+                    document.getElementById('totalPatients').textContent = '0';
+                    document.getElementById('totalPrescriptions').textContent = '0';
+                    document.getElementById('pendingReviews').textContent = '0';
+                });
+        }
+
+        function openFeature(feature) {
+            const modal = document.getElementById('featureModal');
+            const title = document.getElementById('modalTitle');
+            const content = document.getElementById('modalContent');
+            const action = document.getElementById('modalAction');
+
+            action.onclick = function() {
+                if (feature === 'patient-records') {
+                    closeModal();
+                    openPatientSearchModal();
+                } else if (feature === 'write-prescription') {
+                    closeModal();
+                    openPatientSearchModal();
+                } else if (feature === 'video-consultation') {
+                    closeModal();
+                    window.location.href = '/video_consultation';
+                } else if (feature === 'medical-reports') {
+                    closeModal();
+                    alert('Medical reports feature coming soon!');
+                } else if (feature === 'analytics') {
+                    closeModal();
+                    alert('Analytics dashboard coming soon!');
+                } else {
+                    alert('Feature coming soon: ' + features[feature]?.title || feature);
+                }
+            };
+
+            const features = {
+                'patient-records': {
+                    title: 'Patient Records',
+                    content: 'Search for patients and view their health records, test results, and medical history. Access patient information securely during consultations.',
+                    action: 'Search Patients'
+                },
+                'write-prescription': {
+                    title: 'Write Prescription',
+                    content: 'Create digital prescriptions for your patients. Specify medicines, dosages, and instructions. Prescriptions will be securely stored and accessible to patients.',
+                    action: 'Write Prescription'
+                },
+                'video-consultation': {
+                    title: 'Video Consultation',
+                    content: 'Start video calls with your patients for remote consultations. Ensure you have a stable internet connection and camera access.',
+                    action: 'Start Video Call'
+                },
+                'medical-reports': {
+                    title: 'Medical Reports',
+                    content: 'Generate comprehensive medical reports for your patients. Include diagnosis, treatment plans, and follow-up recommendations.',
+                    action: 'Generate Report'
+                },
+                'analytics': {
+                    title: 'Practice Analytics',
+                    content: 'View detailed analytics about your practice performance, patient demographics, consultation trends, and revenue statistics.',
+                    action: 'View Analytics'
+                }
+            };
+
+            const featureData = features[feature];
+            if (featureData) {
+                title.textContent = featureData.title;
+                content.textContent = featureData.content;
+                action.textContent = featureData.action;
+                modal.classList.remove('hidden');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('featureModal').classList.add('hidden');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('featureModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Patient Search Functions
+        function openPatientSearchModal() {
+            document.getElementById('patientSearchModal').classList.remove('hidden');
+            loadPatients();
+            initializeSearch();
+        }
+
+        function closePatientSearchModal() {
+            document.getElementById('patientSearchModal').classList.add('hidden');
+        }
+
+        function initializeSearch() {
+            const searchInput = document.getElementById('patientSearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', function(e) {
+                    const searchTerm = e.target.value.toLowerCase();
+                    const patientItems = document.querySelectorAll('#patientResults > div');
+
+                    patientItems.forEach(item => {
+                        const name = item.querySelector('p.font-medium').textContent.toLowerCase();
+                        const username = item.querySelector('p.text-sm').textContent.toLowerCase();
+
+                        if (name.includes(searchTerm) || username.replace('@', '').includes(searchTerm)) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+            }
+        }
+
+        function loadPatients() {
+            fetch('/api/patients')
+                .then(response => response.json())
+                .then(patients => {
+                    displayPatients(patients);
+                })
+                .catch(error => {
+                    console.error('Error loading patients:', error);
+                    // For demo, show some sample patients
+                    displayPatients([
+                        { id: 1, name: 'Ananya Sharma', username: 'patient1' },
+                        { id: 2, name: 'Rahul Kumar', username: 'patient2' },
+                        { id: 3, name: 'Priya Singh', username: 'patient3' }
+                    ]);
+                });
+        }
+
+        function displayPatients(patients) {
+            const resultsDiv = document.getElementById('patientResults');
+            resultsDiv.innerHTML = '';
+
+            patients.forEach(patient => {
+                const patientDiv = document.createElement('div');
+                patientDiv.className = 'p-3 border border-gray-200 rounded-lg hover:bg-gray-50';
+                patientDiv.style.display = 'block';
+
+                patientDiv.innerHTML = `
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center">
+                            <div class="bg-blue-100 rounded-full w-10 h-10 flex items-center justify-center mr-3">
+                                <span class="text-blue-600 font-semibold text-sm">${patient.name.split(' ').map(n => n[0]).join('')}</span>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-900">${patient.name}</p>
+                                <p class="text-sm text-gray-500">@${patient.username}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="viewPatientRecords(${patient.id})"
+                                class="flex-1 bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-file-medical mr-1"></i> View Records
+                        </button>
+                        <button onclick="writePrescription(${patient.id})"
+                                class="flex-1 bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">
+                            <i class="fas fa-prescription-bottle mr-1"></i> Write Prescription
+                        </button>
+                    </div>
+                `;
+
+                resultsDiv.appendChild(patientDiv);
+            });
+        }
+
+        function viewPatientRecords(patientId) {
+            window.location.href = `/doctor/records/${patientId}`;
+        }
+
+        function writePrescription(patientId) {
+            window.location.href = `/doctor/write_prescription/${patientId}`;
+        }
+
+        function viewAppointment(appointmentId) {
+            window.location.href = `/doctor/appointments`;
+        }
+
+        // Simulate notification interactions
+        document.querySelector('button[class*="notification"]').addEventListener('click', function() {
+            alert('Notifications:\n• New appointment request from Ananya Sharma\n• Prescription refill request\n• Lab results ready for review');
+        });
+
+        // Load recent appointments
+        async function loadRecentAppointments() {
+            try {
+                const response = await fetch('/api/doctor/recent-appointments');
+                const appointments = await response.json();
+
+                const container = document.getElementById('recentAppointmentsList');
+
+                if (appointments.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center text-gray-500 py-8">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <p class="mt-2 text-lg font-medium">No recent appointments</p>
+                            <p class="mt-1 text-sm">Appointments will appear here once patients book consultations with you.</p>
+                            <a href="/doctor/appointments" class="inline-block mt-3 text-blue-600 hover:text-blue-800 font-medium">
+                                View All Appointments →
+                            </a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                // Limit to 3 recent appointments for dashboard
+                const recentAppointments = appointments.slice(0, 3);
+                
+                recentAppointments.forEach(appointment => {
+                    const patientName = appointment.patient_name || 'Unknown Patient';
+                    const appointmentDate = appointment.appointment_date || 'Date not set';
+                    const appointmentTime = appointment.appointment_time || 'Time not set';
+                    const appointmentStatus = appointment.status || 'pending';
+                    const appointmentId = appointment.id || 0;
+
+                    const statusClass = {
+                        'pending': 'bg-orange-100 text-orange-800',
+                        'confirmed': 'bg-green-100 text-green-800',
+                        'completed': 'bg-blue-100 text-blue-800',
+                        'cancelled': 'bg-red-100 text-red-800'
+                    }[appointmentStatus] || 'bg-gray-100 text-gray-800';
+
+                    html += `
+                        <div class="bg-white p-4 rounded-lg border border-gray-200 hover:shadow-md transition-all">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-3 mb-2">
+                                        <i class="fas fa-user-circle text-blue-500 text-xl"></i>
+                                        <h4 class="font-semibold text-gray-900">${patientName}</h4>
+                                        <span class="px-2 py-1 rounded-full text-xs font-medium ${statusClass}">
+                                            ${appointmentStatus.charAt(0).toUpperCase() + appointmentStatus.slice(1)}
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center space-x-4 text-sm text-gray-600">
+                                        <span><i class="fas fa-calendar mr-1"></i>${appointmentDate}</span>
+                                        <span><i class="fas fa-clock mr-1"></i>${appointmentTime}</span>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    ${appointmentStatus === 'pending' ? `
+                                        <button onclick="approveAppointment(${appointmentId})" 
+                                                class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors">
+                                            <i class="fas fa-check mr-1"></i>Approve
+                                        </button>
+                                        <button onclick="declineAppointment(${appointmentId})" 
+                                                class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors">
+                                            <i class="fas fa-times mr-1"></i>Decline
+                                        </button>
+                                    ` : `
+                                        <button onclick="viewAppointment(${appointmentId})" 
+                                                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors">
+                                            <i class="fas fa-eye mr-1"></i>View
+                                        </button>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading recent appointments:', error);
+                document.getElementById('recentAppointmentsList').innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p class="mt-2 text-lg font-medium text-red-600">Error loading appointments</p>
+                        <p class="mt-1 text-sm">Please refresh the page or contact support if the problem persists.</p>
+                        <button onclick="loadRecentAppointments()" class="inline-block mt-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded font-medium">
+                            Try Again
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Approve appointment
+        async function approveAppointment(appointmentId) {
+            if (!confirm('Are you sure you want to approve this appointment?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/approve_appointment/${appointmentId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Use SweetAlert2 for better user feedback
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Appointment approved successfully!'
+                    });
+                    loadRecentAppointments(); // Refresh the appointments list
+                } else {
+                    throw new Error(data.error || 'Failed to approve appointment');
+                }
+            } catch (error) {
+                console.error('Error approving appointment:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: error.message || 'An error occurred while approving the appointment.'
+                });
+            }
+        }
+
+        // Decline appointment
+        async function declineAppointment(appointmentId) {
+            if (!confirm('Are you sure you want to decline this appointment?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/decline_appointment/${appointmentId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Appointment declined successfully!'
+                    });
+                    loadRecentAppointments(); // Refresh the appointments list
+                } else {
+                    throw new Error(data.error || 'Failed to decline appointment');
+                }
+            } catch (error) {
+                console.error('Error declining appointment:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: error.message || 'An error occurred while declining the appointment.'
+                });
+            }
+        }
+
+        // View appointment details
+        function viewAppointment(appointmentId) {
+            // You can implement appointment details view here
+            alert(`View appointment details for appointment ID: ${appointmentId}`);
+            // In a real implementation, you might open a modal or navigate to a detailed view
+        }
+
+        // Load appointments when page loads
+        document.addEventListener('DOMContentLoaded', loadRecentAppointments);
+
+        // Profile dropdown functions
+        function toggleProfile() {
+            const dropdown = document.getElementById('profileDropdown');
+            if (dropdown.classList.contains('hidden')) {
+                dropdown.classList.remove('hidden');
+            } else {
+                dropdown.classList.add('hidden');
+            }
+        }
+
+        // Mobile menu functions
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            if (mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.remove('hidden');
+            } else {
+                mobileMenu.classList.add('hidden');
+            }
+        }
+
+        // Close profile dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const profileDropdown = document.getElementById('profileDropdown');
+            const profileButton = e.target.closest('button[onclick="toggleProfile()"]');
+            if (!profileDropdown.contains(e.target) && !profileButton) {
+                profileDropdown.classList.add('hidden');
+            }
+
+            // Close mobile menu when clicking outside
+            const mobileMenu = document.getElementById('mobileMenu');
+            const mobileButton = e.target.closest('button[onclick="toggleMobileMenu()"]');
+            if (!mobileMenu.contains(e.target) && !mobileButton) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+    </script>
+
+    <!-- Socket.IO for real-time SOS alerts -->
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+    <script>
+        // Initialize Socket.IO
+        const socket = io();
+        let activeSosAlerts = new Map();
+
+        // Join doctors room for SOS alerts
+        socket.emit('join_doctors_room');
+
+        // Listen for SOS alerts
+        socket.on('sos_alert', function(data) {
+            console.log('Received SOS alert:', data);
+            addSosAlert(data);
+            showSosNotification(data);
+            playAlertSound();
+        });
+
+        function addSosAlert(alertData) {
+            activeSosAlerts.set(alertData.alertId, alertData);
+            updateSosAlertsDisplay();
+        }
+
+        function updateSosAlertsDisplay() {
+            const sosSection = document.getElementById('sosAlertsSection');
+            const sosList = document.getElementById('sosAlertsList');
+            const sosCount = document.getElementById('sosAlertsCount');
+
+            if (activeSosAlerts.size > 0) {
+                sosSection.classList.remove('hidden');
+                sosCount.textContent = activeSosAlerts.size;
+                
+                sosList.innerHTML = '';
+                activeSosAlerts.forEach((alert, alertId) => {
+                    const alertElement = createSosAlertElement(alert);
+                    sosList.appendChild(alertElement);
+                });
+            } else {
+                sosSection.classList.add('hidden');
+            }
+        }
+
+        function createSosAlertElement(alert) {
+            const div = document.createElement('div');
+            div.className = 'bg-white rounded-2xl p-6 border border-red-200 shadow-xl hover:scale-105 transition-all duration-300';
+            div.id = `sos-alert-${alert.alertId}`;
+            
+            const locationInfo = alert.latitude && alert.longitude 
+                ? `📍 GPS: ${alert.latitude.toFixed(6)}, ${alert.longitude.toFixed(6)}`
+                : (alert.locationError ? `⚠️ ${alert.locationError}` : '❌ Location unavailable');
+            
+            const mapsLink = alert.latitude && alert.longitude 
+                ? `<a href="https://www.google.com/maps?q=${alert.latitude},${alert.longitude}" target="_blank" class="inline-flex items-center bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1 rounded-full text-sm font-medium transition-all border border-blue-200"><i class="fas fa-map-marker-alt mr-2"></i>View on Maps</a>`
+                : '';
+            
+            div.innerHTML = `
+                <div class="flex flex-col lg:flex-row lg:items-start justify-between space-y-4 lg:space-y-0">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex flex-wrap items-center mb-4 gap-3">
+                            <div class="bg-red-500 rounded-full w-4 h-4 notification-dot flex-shrink-0"></div>
+                            <h4 class="text-xl font-bold text-red-800 truncate">${alert.patientName}</h4>
+                            <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold border border-red-200">Alert #${alert.alertId}</span>
+                        </div>
+                        <div class="space-y-2 text-gray-700">
+                            <div class="flex items-center">
+                                <i class="fas fa-clock mr-3 text-gray-500"></i>
+                                <span><strong>Time:</strong> ${new Date(alert.timestamp).toLocaleString()}</span>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-map-marker-alt mr-3 text-gray-500 mt-1"></i>
+                                <div class="flex flex-col gap-2">
+                                    <span><strong>Location:</strong> ${locationInfo}</span>
+                                    ${mapsLink}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-row lg:flex-col gap-3 lg:ml-6 flex-shrink-0">
+                        <button onclick="respondToSos(${alert.alertId}, '${alert.patientName}')" 
+                                class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 shadow-lg flex-1 lg:flex-none">
+                            <i class="fas fa-check mr-2"></i>Respond Now
+                        </button>
+                        <button onclick="viewPatientDetails(${alert.patientId})" 
+                                class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 shadow-lg flex-1 lg:flex-none">
+                            <i class="fas fa-user-md mr-2"></i>View Patient
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        function showSosNotification(alert) {
+            // Show browser notification if permission granted
+            if (Notification.permission === 'granted') {
+                const notification = new Notification('🚨 Emergency SOS Alert', {
+                    body: `Patient ${alert.patientName} needs immediate assistance!`,
+                    icon: '/static/logo.png',
+                    requireInteraction: true
+                });
+                
+                notification.onclick = function() {
+                    window.focus();
+                    document.getElementById(`sos-alert-${alert.alertId}`).scrollIntoView({ behavior: 'smooth' });
+                };
+            }
+            
+            // Show SweetAlert notification
+            Swal.fire({
+                title: '🚨 EMERGENCY SOS ALERT',
+                html: `
+                    <div class="text-left">
+                        <p><strong>Patient:</strong> ${alert.patientName}</p>
+                        <p><strong>Time:</strong> ${new Date(alert.timestamp).toLocaleString()}</p>
+                        <p><strong>Alert ID:</strong> #${alert.alertId}</p>
+                        <br>
+                        <p class="text-red-600 font-semibold">Immediate medical attention required!</p>
+                    </div>
+                `,
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonText: '✅ Respond Now',
+                cancelButtonText: 'View Alert',
+                confirmButtonColor: '#059669',
+                cancelButtonColor: '#3b82f6'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    respondToSos(alert.alertId, alert.patientName);
+                } else {
+                    document.getElementById(`sos-alert-${alert.alertId}`).scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        }
+
+        function playAlertSound() {
+            // Create audio context for alert sound
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+            
+            // Play multiple beeps
+            setTimeout(() => playBeep(audioContext), 600);
+            setTimeout(() => playBeep(audioContext), 1200);
+        }
+
+        function playBeep(audioContext) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 1000;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.2);
+        }
+
+        function respondToSos(alertId, patientName) {
+            Swal.fire({
+                title: 'Respond to SOS Alert',
+                html: `
+                    <div class="text-left mb-4">
+                        <p><strong>Patient:</strong> ${patientName}</p>
+                        <p><strong>Alert ID:</strong> #${alertId}</p>
+                    </div>
+                    <textarea id="responseNotes" class="w-full p-3 border rounded-lg" 
+                              placeholder="Enter response notes (optional)..." rows="3"></textarea>
+                `,
+                showCancelButton: true,
+                confirmButtonText: '✅ Confirm Response',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#059669',
+                preConfirm: () => {
+                    return document.getElementById('responseNotes').value;
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    submitSosResponse(alertId, result.value, patientName);
+                }
+            });
+        }
+
+        function submitSosResponse(alertId, notes, patientName) {
+            fetch(`/sos_respond/${alertId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ notes: notes })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove alert from active list
+                    activeSosAlerts.delete(alertId);
+                    updateSosAlertsDisplay();
+                    
+                    Swal.fire({
+                        title: 'Response Sent!',
+                        text: `You have successfully responded to ${patientName}'s emergency alert.`,
+                        icon: 'success',
+                        confirmButtonColor: '#059669'
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: data.error || 'Failed to respond to SOS alert',
+                        icon: 'error'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error responding to SOS:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Failed to send response. Please try again.',
+                    icon: 'error'
+                });
+            });
+        }
+
+        function viewPatientDetails(patientId) {
+            // Redirect to patient records page for doctors
+            window.open(`/doctor/records/${patientId}`, '_blank');
+        }
+
+        // Request notification permission on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+            
+            // Load any existing active SOS alerts
+            loadActiveSosAlerts();
+        });
+
+        function loadActiveSosAlerts() {
+            fetch('/api/active_sos_alerts')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    data.alerts.forEach(alert => {
+                        activeSosAlerts.set(alert.id, {
+                            alertId: alert.id,
+                            patientName: alert.patientName,
+                            patientId: alert.patientId,
+                            latitude: alert.latitude,
+                            longitude: alert.longitude,
+                            locationError: alert.locationError,
+                            timestamp: alert.timestamp
+                        });
+                    });
+                    updateSosAlertsDisplay();
+                }
+            })
+            .catch(error => console.error('Error loading SOS alerts:', error));
+        }
+
+        // Handle page unload
+        window.addEventListener('beforeunload', function() {
+            socket.emit('leave_doctors_room');
+        });
+    </script>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="text-center">
+                <div class="flex justify-center items-center mb-4">
+                    <svg class="h-6 w-6 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span class="text-lg font-semibold text-gray-900">Telemedicine Rural Nabha</span>
+                </div>
+                <p class="text-gray-600 text-sm mb-2">Empowering rural healthcare through technology - ग्रामीण स्वास्थ्य सेवा को तकनीक के माध्यम से सशक्त बनाना</p>
+                <p class="text-gray-500 text-xs">© 2025 Telemedicine Rural Nabha. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Google Translate Script -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement(
+                {
+                    pageLanguage: 'en',
+                    includedLanguages: 'hi,pa,en,ur,bn,ta,te,ml,kn,gu,mr,or,as,ne',
+                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                    autoDisplay: false
+                }, 
+                'google_translate_element'
+            );
+            
+            // Restore saved language preference
+            setTimeout(function() {
+                restoreSelectedLanguage();
+                monitorLanguageChanges();
+            }, 1000);
+        }
+
+        function saveSelectedLanguage() {
+            var selectElement = document.querySelector('.goog-te-combo');
+            if (selectElement && selectElement.value) {
+                localStorage.setItem('googtrans', '/en/' + selectElement.value);
+                localStorage.setItem('selectedLanguage', selectElement.value);
+                console.log('Language saved:', selectElement.value);
+            }
+        }
+
+        function restoreSelectedLanguage() {
+            var savedLanguage = localStorage.getItem('selectedLanguage');
+            var selectElement = document.querySelector('.goog-te-combo');
+            
+            if (savedLanguage && selectElement) {
+                selectElement.value = savedLanguage;
+                selectElement.dispatchEvent(new Event('change'));
+                console.log('Language restored:', savedLanguage);
+            }
+        }
+
+        function monitorLanguageChanges() {
+            var selectElement = document.querySelector('.goog-te-combo');
+            if (selectElement) {
+                selectElement.addEventListener('change', function() {
+                    saveSelectedLanguage();
+                });
+            }
+        }
+
+        // Hide Google Translate banner
+        function hideGoogleTranslateBanner() {
+            var banner = document.querySelector('.goog-te-banner-frame');
+            if (banner) {
+                banner.style.display = 'none';
+            }
+            document.body.style.top = '0px';
+        }
+
+        // Check for banner periodically
+        setInterval(hideGoogleTranslateBanner, 100);
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>

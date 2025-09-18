@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+<head>
+<title>Doctor Chat Dashboard</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+<style>
+body { font-family: Arial, sans-serif; background-color: #f0f0f0; margin: 0; padding: 0; }
+.navbar { background: linear-gradient(135deg, #005ea2 0%, #003d73 100%); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.navbar h2 { margin: 0; font-size: 1.5em; font-weight: bold; }
+.navbar a { color: white; text-decoration: none; margin: 0 15px; padding: 8px 12px; border-radius: 4px; transition: background-color 0.3s ease; font-weight: 500; }
+.navbar a:hover { background-color: rgba(255,255,255,0.1); }
+.navbar a:last-child { background-color: #dc3545; }
+.navbar a:last-child:hover { background-color: #c82333; }
+.container { max-width: 800px; margin: 20px auto; background: white; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); overflow: hidden; }
+.chat-list { padding: 20px; }
+.chat-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; transition: background-color 0.3s ease; }
+.chat-item:hover { background-color: #f8f9fa; }
+.chat-item:last-child { border-bottom: none; }
+.patient-info { flex: 1; }
+.patient-name { font-weight: bold; color: #333; }
+.last-message { color: #666; font-size: 0.9em; margin-top: 5px; }
+.timestamp { color: #999; font-size: 0.8em; }
+.chat-button { background: #25d366; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; transition: background-color 0.3s ease; }
+.chat-button:hover { background: #128c7e; }
+.records-button { background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; transition: background-color 0.3s ease; font-size: 0.9em; }
+.records-button:hover { background: #0056b3; }
+.prescription-button { background: #28a745; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; transition: background-color 0.3s ease; font-size: 0.9em; }
+.prescription-button:hover { background: #1e7e34; }
+.no-chats { text-align: center; padding: 40px; color: #666; }
+</style>
+</head>
+<body>
+<div class="navbar">
+<h2>Doctor Chat Dashboard</h2>
+<div><a href="/dashboard">Dashboard</a><a href="/logout" style="color: white; ">Logout</a></div>
+</div>
+<div class="container">
+<div class="chat-list">
+    {% if active_chats %}
+        {% for chat in active_chats %}
+        <div class="chat-item" onclick="openChat('{{ chat.room }}', '{{ chat.patient_username }}')">
+            <div class="patient-info">
+                <div class="patient-name">{{ chat.patient_username }}</div>
+                <div class="last-message">{{ chat.last_message or 'No messages yet' }}</div>
+            </div>
+            <div class="timestamp">{{ chat.last_timestamp.strftime('%H:%M') if chat.last_timestamp else '' }}</div>
+            <div style="display: flex; gap: 8px;">
+                <button class="records-button" onclick="event.stopPropagation(); viewPatientRecords({{ chat.patient_id }})">Records</button>
+                <button class="prescription-button" onclick="event.stopPropagation(); writePrescription({{ chat.patient_id }})">Prescription</button>
+                <button class="chat-button" onclick="event.stopPropagation(); openChat('{{ chat.room }}', '{{ chat.patient_username }}')">Chat</button>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="no-chats">No active chats yet. Patients will appear here when they start conversations.</div>
+    {% endif %}
+</div>
+</div>
+<script>
+function openChat(room, patientName) {
+    window.location.href = `/doctor_chat/${room}`;
+}
+
+function viewPatientRecords(patientId) {
+    window.location.href = `/doctor/records/${patientId}`;
+}
+
+function writePrescription(patientId) {
+    window.location.href = `/doctor/write_prescription/${patientId}`;
+}
+</script>
+</body>
+</html>

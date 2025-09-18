@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Telemedicine Rural Nabha</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #60a5fa;
+            --secondary: #10b981;
+            --secondary-dark: #059669;
+            --secondary-light: #34d399;
+            --success: #22c55e;
+            --success-light: #86efac;
+            --warning: #f59e0b;
+            --warning-light: #fcd34d;
+            --danger: #ef4444;
+            --danger-light: #fca5a5;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary-light));
+            min-height: 100vh;
+        }
+
+        .heading-font {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            transition: all 0.2s;
+        }
+        .form-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            border-color: var(--primary);
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            transition: all 0.2s;
+            resize: vertical;
+        }
+        .form-textarea:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            border-color: var(--primary);
+        }
+
+        .btn-primary {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            transform: translateY(0);
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            color: #374151;
+            font-weight: 600;
+            margin: 1.5rem 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Google Translate Widget Styling */
+        #google_translate_element {
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        #google_translate_element .goog-te-combo {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 6px 10px 6px 28px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #374151;
+            outline: none;
+            cursor: pointer;
+            min-width: 120px;
+            height: 32px;
+            text-align: left;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+        
+        #google_translate_element .goog-te-combo:hover {
+            background: white;
+            border-color: #2563eb;
+            transform: translateY(-1px);
+        }
+        
+        #google_translate_element .goog-te-combo:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        /* Hide only the banner frame - keep functionality */
+        .goog-te-banner-frame {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        
+        /* Hide the top frame that appears when translating */
+        body {
+            top: 0px !important;
+        }
+        
+        /* Prevent Google Translate from adding margin to body */
+        body.translated-ltr {
+            top: 0 !important;
+        }
+        
+        body.translated-rtl {
+            top: 0 !important;
+        }
+        
+        /* Fix z-index issues with header and Google Translate */
+        .logo-brand {
+            position: relative !important;
+            z-index: 9999 !important;
+        }
+        
+        /* Ensure Google Translate dropdown appears correctly */
+        .goog-te-menu-frame {
+            z-index: 999999 !important;
+            border-radius: 0.5rem !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+            max-height: 200px !important;
+            overflow-y: auto !important;
+        }
+        
+        .goog-te-menu-frame .goog-te-menu2 {
+            background: white !important;
+            border-radius: 0.5rem !important;
+        }
+        
+        /* Fix Google Translate widget positioning */
+        #google_translate_element {
+            position: relative !important;
+            z-index: 10001 !important;
+        }
+        
+        /* Prevent Google Translate from affecting layout */
+        .goog-te-gadget {
+            font-size: 0 !important;
+            line-height: 0 !important;
+        }
+        
+        .goog-te-gadget > span {
+            vertical-align: top !important;
+        }
+        
+        .goog-te-gadget .goog-te-combo {
+            margin: 0 !important;
+            vertical-align: top !important;
+        }
+        
+        /* Hide notification bar but keep widget functional */
+        .skiptranslate iframe {
+            visibility: hidden !important;
+            height: 0 !important;
+        }
+        
+        /* Hide translate tooltips */
+        .translate-tooltip {
+            display: none !important;
+        }
+        
+        /* Style the Google Translate widget itself */
+        .goog-te-gadget-simple {
+            background-color: transparent !important;
+            border: none !important;
+            font-size: 13px !important;
+            font-family: 'Inter', sans-serif !important;
+            display: inline-block !important;
+        }
+        
+        .goog-te-gadget-simple .goog-te-menu-value {
+            color: #374151 !important;
+            font-weight: 500 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        /* Hide the "Select Language" text but keep dropdown functional */
+        .goog-te-gadget-simple .goog-te-menu-value span:first-child {
+            display: none !important;
+        }
+        
+        /* Keep the actual language text visible */
+        .goog-te-gadget-simple .goog-te-menu-value span:last-child {
+            color: #374151 !important;
+            font-weight: 500 !important;
+        }
+        
+        /* Hide Google Translate icon but keep our custom one */
+        .goog-te-gadget-icon {
+            display: none !important;
+        }
+        
+        /* Ensure the dropdown is clickable */
+        .goog-te-gadget-simple a {
+            text-decoration: none !important;
+            color: #374151 !important;
+        }
+        
+        /* Style the actual dropdown when it appears */
+        .goog-te-combo {
+            background: rgba(255, 255, 255, 0.9) !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            border-radius: 8px !important;
+            padding: 6px 10px 6px 28px !important;
+            font-size: 13px !important;
+            color: #374151 !important;
+            min-width: 120px !important;
+            height: 32px !important;
+        }
+        
+        /* Custom language selector styling for register page */
+        .language-selector {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            vertical-align: middle;
+        }
+        
+        .language-selector::before {
+            content: "🌐";
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            pointer-events: none;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="max-w-2xl w-full">
+        <!-- Google Translate Widget -->
+        <div class="text-right mb-4">
+            <div class="language-selector inline-block">
+                <div id="google_translate_element"></div>
+            </div>
+        </div>
+        
+        <!-- Logo/Brand -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full shadow-lg mb-4">
+                <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+            </div>
+            <h1 class="heading-font text-3xl font-bold text-white mb-2">Telemedicine Rural Nabha</h1>
+            <p class="text-white/80">Join our healthcare community</p>
+        </div>
+
+        <!-- Registration Form -->
+        <div class="bg-white rounded-2xl shadow-2xl p-8 animate-fade-in">
+            <div class="text-center mb-6">
+                <h2 class="heading-font text-2xl font-bold text-gray-900">Patient Registration</h2>
+                <p class="text-gray-600 mt-2">Create your account to access healthcare services</p>
+            </div>
+
+            <form method="post" class="space-y-6">
+                <!-- Required Information -->
+                <div>
+                    <h3 class="section-title text-lg">Required Information</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                            <input
+                                type="text"
+                                id="name"
+                                name="name"
+                                class="form-input"
+                                placeholder="Enter your full name"
+                                required
+                            >
+                        </div>
+                        <div>
+                            <label for="username" class="block text-sm font-medium text-gray-700 mb-2">Username / Patient ID *</label>
+                            <input
+                                type="text"
+                                id="username"
+                                name="username"
+                                class="form-input"
+                                placeholder="Choose a username"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password *</label>
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                class="form-input"
+                                placeholder="Create a password"
+                                required
+                            >
+                        </div>
+                        <div>
+                            <label for="confirm_password" class="block text-sm font-medium text-gray-700 mb-2">Confirm Password *</label>
+                            <input
+                                type="password"
+                                id="confirm_password"
+                                name="confirm_password"
+                                class="form-input"
+                                placeholder="Confirm your password"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <label for="mobile" class="block text-sm font-medium text-gray-700 mb-2">Mobile Number *</label>
+                        <input
+                            type="tel"
+                            id="mobile"
+                            name="mobile"
+                            class="form-input"
+                            placeholder="Enter your mobile number"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <!-- Optional Information -->
+                <div>
+                    <h3 class="section-title text-lg">Health & Location Information <span class="text-sm font-normal text-gray-500">(Optional but Recommended)</span></h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="date_of_birth" class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                            <input
+                                type="date"
+                                id="date_of_birth"
+                                name="date_of_birth"
+                                class="form-input"
+                            >
+                        </div>
+                        <div>
+                            <label for="gender" class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                            <select name="gender" id="gender" class="form-input">
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <label for="pin_code" class="block text-sm font-medium text-gray-700 mb-2">PIN Code</label>
+                            <input
+                                type="text"
+                                id="pin_code"
+                                name="pin_code"
+                                class="form-input"
+                                placeholder="Enter PIN code"
+                            >
+                        </div>
+                        <div>
+                            <label for="preferred_language" class="block text-sm font-medium text-gray-700 mb-2">Preferred Language</label>
+                            <select name="preferred_language" id="preferred_language" class="form-input">
+                                <option value="English">English</option>
+                                <option value="Hindi">Hindi</option>
+                                <option value="Punjabi">Punjabi</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <label for="address" class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                        <textarea
+                            name="address"
+                            id="address"
+                            rows="3"
+                            class="form-textarea"
+                            placeholder="Enter your complete address"
+                        ></textarea>
+                    </div>
+
+                    <div class="mt-4">
+                        <label for="health_history" class="block text-sm font-medium text-gray-700 mb-2">Health History</label>
+                        <textarea
+                            name="health_history"
+                            id="health_history"
+                            rows="3"
+                            class="form-textarea"
+                            placeholder="e.g. diabetes, high blood pressure, asthma, allergies"
+                        ></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                            <label for="emergency_contact_name" class="block text-sm font-medium text-gray-700 mb-2">Emergency Contact Name</label>
+                            <input
+                                type="text"
+                                id="emergency_contact_name"
+                                name="emergency_contact_name"
+                                class="form-input"
+                                placeholder="Contact person's name"
+                            >
+                        </div>
+                        <div>
+                            <label for="emergency_contact_number" class="block text-sm font-medium text-gray-700 mb-2">Emergency Contact Number</label>
+                            <input
+                                type="tel"
+                                id="emergency_contact_number"
+                                name="emergency_contact_number"
+                                class="form-input"
+                                placeholder="Contact person's number"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            class="form-input"
+                            placeholder="Enter your email address"
+                        >
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    Create Account
+                </button>
+            </form>
+
+            {% if error %}
+            <div class="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <p class="text-red-800 text-sm">{{ error }}</p>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="mt-6 text-center">
+                <p class="text-gray-600">
+                    Already have an account?
+                    <a href="{{ url_for('login') }}" class="text-primary hover:text-primary-dark font-medium transition-colors">
+                        Sign In
+                    </a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-8">
+            <p class="text-white/60 text-sm">© 2025 Telemedicine Rural Nabha. All rights reserved.</p>
+        </div>
+    </div>
+
+    <!-- Google Translate Scripts -->
+    <script type="text/javascript">
+        // Language persistence functions
+        function saveSelectedLanguage(language) {
+            localStorage.setItem('selectedLanguage', language);
+        }
+        
+        function getSelectedLanguage() {
+            return localStorage.getItem('selectedLanguage') || 'en';
+        }
+        
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'hi,ta,pa,ur,en',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
+            }, 'google_translate_element');
+            
+            // Restore previously selected language
+            setTimeout(function() {
+                restoreSelectedLanguage();
+            }, 1000);
+        }
+        
+        function restoreSelectedLanguage() {
+            const savedLanguage = getSelectedLanguage();
+            if (savedLanguage && savedLanguage !== 'en') {
+                const selectElement = document.querySelector('.goog-te-combo');
+                if (selectElement) {
+                    selectElement.value = savedLanguage;
+                    selectElement.dispatchEvent(new Event('change'));
+                }
+            }
+        }
+        
+        // Monitor language changes and save them
+        function monitorLanguageChanges() {
+            const selectElement = document.querySelector('.goog-te-combo');
+            if (selectElement) {
+                selectElement.addEventListener('change', function() {
+                    saveSelectedLanguage(this.value);
+                });
+            }
+        }
+        
+        // Function to hide only the Google Translate banner while keeping widget functional
+        function hideGoogleTranslateBanner() {
+            // Hide only the banner frame, not the widget itself
+            const banner = document.querySelector('.goog-te-banner-frame');
+            if (banner) {
+                banner.style.display = 'none';
+                banner.style.visibility = 'hidden';
+            }
+            
+            // Reset body top position that Google Translate adds
+            if (document.body.style.top && document.body.style.top !== '0px') {
+                document.body.style.top = '0px';
+                document.body.style.position = 'static';
+            }
+            
+            // Hide only notification iframes, not the functional widget
+            const iframes = document.querySelectorAll('.skiptranslate iframe');
+            iframes.forEach(function(iframe) {
+                // Only hide if it's a banner iframe, not the main widget
+                if (iframe.src && iframe.src.includes('translate_a')) {
+                    return; // Don't hide the main translate functionality
+                }
+                iframe.style.display = 'none';
+                iframe.style.visibility = 'hidden';
+            });
+        }
+        
+        // Monitor for Google Translate banner (less frequent to avoid interfering)
+        setInterval(hideGoogleTranslateBanner, 500);
+        
+        // Also hide on page load
+        window.addEventListener('load', function() {
+            setTimeout(hideGoogleTranslateBanner, 1000);
+            setTimeout(monitorLanguageChanges, 1500);
+        });
+        
+        // Make sure the widget stays visible and functional
+        setInterval(function() {
+            const widget = document.querySelector('#google_translate_element');
+            if (widget) {
+                widget.style.display = 'inline-block';
+                widget.style.visibility = 'visible';
+            }
+            
+            // Ensure the select dropdown is visible and functional
+            const combo = document.querySelector('.goog-te-combo');
+            if (combo) {
+                combo.style.display = 'block';
+                combo.style.visibility = 'visible';
+            }
+        }, 1000);
+    </script>
+    
+    <script type="text/javascript" 
+        src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit">
+    </script>
+</body>
+</html>
