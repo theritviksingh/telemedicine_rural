@@ -1,6 +1,6 @@
 Flask==2.2.5
 mysql-connector-python==8.0.33
-psycopg2-binary==2.9.7
+psycopg2-binary
 Flask-SocketIO==5.3.6
 python-socketio==5.8.0
 requests==2.31.0
