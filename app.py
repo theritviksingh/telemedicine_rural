@@ -50,12 +50,13 @@ def allowed_file(filename):
 def get_db_connection():
     """Get database connection - PostgreSQL for production, MySQL for development"""
     
-    database_url = database_url.replace("postgres://", "postgresql://")
+    DATABASE_URL = postgres://telemedicine_s8km_user:x6qv1bgCEh8qFkuABCmV03XZsSvIj8OF@dpg-d36223ndiees738oknqg-a.oregon-postgres.render.com:5432/telemedicine_s8km
+
 
     
     if database_url:
         # Production - PostgreSQL on Render
-        url = urlparse(postgresql://telemedicine_s8km_user:x6qv1bgCEh8qFkuABCmV03XZsSvIj8OF@dpg-d36223ndiees738oknqg-a.oregon-postgres.render.com/telemedicine_s8km)
+        url = urlparse(DATABASE_URL)
         return psycopg2.connect(
             host=dpg-d36223ndiees738oknqg-a,
             port=5432,
