@@ -48,9 +48,10 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_db_connection():
-    database_url = os.environ.get('DATABASE_URL')
+    database_url = os.environ.get("DATABASE_URL")
+    if not database_url:
+        raise ValueError("DATABASE_URL is not set")
 
-    # Fix Render's postgres:// -> postgresql://
     if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql://", 1)
 
@@ -59,12 +60,11 @@ def get_db_connection():
     return psycopg2.connect(
         host=url.hostname,
         port=url.port,
-        database=url.path[1:],  # Remove leading slash
+        database=url.path[1:],
         user=url.username,
         password=url.password,
         cursor_factory=RealDictCursor
     )
-
 def execute_query(query, params=None, fetch=False, fetchone=False):
     """Execute database query with proper handling for both MySQL and PostgreSQL"""
     conn = get_db_connection()
