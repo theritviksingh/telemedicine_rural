@@ -55,7 +55,7 @@ def get_db_connection():
     if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql://", 1)
 
-    url = urlparse.urlparse(database_url)
+    url = urlparse(database_url)
 
     return psycopg2.connect(
         host=url.hostname,
