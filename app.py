@@ -55,11 +55,11 @@ def get_db_connection():
         # Production - PostgreSQL on Render
         url = urlparse(database_url)
         return psycopg2.connect(
-            host=url.hostname,
-            port=url.port,
-            database=url.path[1:],  # Remove leading slash
-            user=url.username,
-            password=url.password,
+            host=dpg-d36223ndiees738oknqg-a,
+            port=5432,
+            database=telemedicine_s8km,  # Remove leading slash
+            user=telemedicine_s8km_user,
+            password=x6qv1bgCEh8qFkuABCmV03XZsSvIj8OF,
             cursor_factory=RealDictCursor
         )
     else:
