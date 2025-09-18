@@ -1,22 +1,23 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, session
 from datetime import timedelta, datetime, time
 import mysql.connector
-import psycopg2
-from psycopg2.extras import RealDictCursor
 from functools import wraps
 from flask_socketio import SocketIO, join_room, leave_room, emit
 import os
 from werkzeug.utils import secure_filename
 import json
-from urllib.parse import urlparse
-from dotenv import load_dotenv
+from config import config
 
-# Load environment variables
-load_dotenv()
-
+# Initialize Flask app
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'devkey')
-app.permanent_session_lifetime = timedelta(days=7)
+
+# Load configuration based on environment
+env = os.environ.get('FLASK_ENV', 'development')
+app.config.from_object(config[env])
+
+# Configure Flask app
+app.secret_key = app.config['SECRET_KEY']
+app.permanent_session_lifetime = app.config['PERMANENT_SESSION_LIFETIME']
 socketio = SocketIO(app)
 
 @app.template_filter('fromjson')
@@ -28,9 +29,9 @@ def now_filter(value):
     return datetime.now()
 
 # Upload configuration
-UPLOAD_FOLDER = 'static/uploads'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'webm', 'ogg', 'mp3', 'wav', 'pdf', 'doc', 'docx', 'txt', 'zip', 'rar'}
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+UPLOAD_FOLDER = app.config['UPLOAD_FOLDER']
+ALLOWED_EXTENSIONS = app.config['ALLOWED_EXTENSIONS']
+app.config['MAX_CONTENT_LENGTH'] = app.config['MAX_CONTENT_LENGTH']
 
 # Create upload folder if it doesn't exist
 if not os.path.exists(UPLOAD_FOLDER):
@@ -48,267 +49,224 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_db_connection():
-    database_url = os.environ.get("DATABASE_URL")
-    if not database_url:
-        raise ValueError("DATABASE_URL is not set")
-
-    if database_url.startswith("postgres://"):
-        database_url = database_url.replace("postgres://", "postgresql://", 1)
-
-    url = urlparse(database_url)
-
-    return psycopg2.connect(
-        host=url.hostname,
-        port=url.port,
-        database=url.path[1:],
-        user=url.username,
-        password=url.password,
-        cursor_factory=RealDictCursor
+    return mysql.connector.connect(
+        host=app.config['DB_HOST'],
+        user=app.config['DB_USER'],
+        password=app.config['DB_PASSWORD'],
+        database=app.config['DB_NAME']
     )
-def execute_query(query, params=None, fetch=False, fetchone=False):
-    """Execute database query with proper handling for both MySQL and PostgreSQL"""
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    
-    try:
-        if params:
-            cursor.execute(query, params)
-        else:
-            cursor.execute(query)
-        
-        if fetch:
-            result = cursor.fetchall()
-        elif fetchone:
-            result = cursor.fetchone()
-        else:
-            result = None
-        
-        conn.commit()
-        return result
-    except Exception as e:
-        conn.rollback()
-        print(f"Database error: {e}")
-        return None
-    finally:
-        cursor.close()
-        conn.close()
 
-def get_db_placeholder():
-    """Get correct placeholder for SQL queries based on database type"""
-    return '%s' if not os.environ.get('DATABASE_URL') else '%s'
-
-# Skip database initialization for production (handled by init_db.py)
-if not os.environ.get('DATABASE_URL'):
-    # Initialize database for development only
+# Initialize database (only for development - remove in production)
+if env == 'development':
     try:
         conn = mysql.connector.connect(
-            host='localhost',
-            user='root',
-            password=''
+            host=app.config['DB_HOST'],
+            user=app.config['DB_USER'],
+            password=app.config['DB_PASSWORD']
         )
         cursor = conn.cursor()
-        cursor.execute("CREATE DATABASE IF NOT EXISTS telemedicine")
+        cursor.execute("CREATE DATABASE IF NOT EXISTS {}".format(app.config['DB_NAME']))
         cursor.close()
         conn.close()
+    except mysql.connector.Error as err:
+        print(f"Database initialization error: {err}")
+        # In production, this should be handled more gracefully
 
-        # Now connect to the database
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            username VARCHAR(50) UNIQUE NOT NULL,
-            password VARCHAR(255) NOT NULL,
-            role ENUM('doctor', 'patient', 'pharmacy') NOT NULL,
-            name VARCHAR(100),
-            email VARCHAR(100),
-            mobile VARCHAR(15) NOT NULL DEFAULT '',
-            date_of_birth DATE,
-            gender ENUM('Male','Female','Other'),
-            address TEXT,
-            pin_code VARCHAR(10),
-            health_history TEXT,
-            emergency_contact_name VARCHAR(100),
-            emergency_contact_number VARCHAR(15),
-            preferred_language ENUM('English','Hindi','Punjabi') DEFAULT 'English',
-            description TEXT,
-            specialist VARCHAR(100)
-        )
-        """)
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS chat_messages (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            room VARCHAR(100) NOT NULL,
-            username VARCHAR(50) NOT NULL,
-            message TEXT NOT NULL,
-            media_url VARCHAR(255),
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-        """)
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS health_records (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            patient_id INT NOT NULL,
-            doctor_id INT,
-            record_type VARCHAR(100) NOT NULL,
-            description TEXT,
-            file_path VARCHAR(255) NOT NULL,
-            date DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (patient_id) REFERENCES users(id),
-            FOREIGN KEY (doctor_id) REFERENCES users(id)
-        )
-        """)
+# Now connect to the database
+conn = get_db_connection()
+cursor = conn.cursor()
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('doctor', 'patient', 'pharmacy') NOT NULL,
+    name VARCHAR(100),
+    email VARCHAR(100),
+    mobile VARCHAR(15) NOT NULL DEFAULT '',
+    date_of_birth DATE,
+    gender ENUM('Male','Female','Other'),
+    address TEXT,
+    pin_code VARCHAR(10),
+    health_history TEXT,
+    emergency_contact_name VARCHAR(100),
+    emergency_contact_number VARCHAR(15),
+    preferred_language ENUM('English','Hindi','Punjabi') DEFAULT 'English',
+    description TEXT,
+    specialist VARCHAR(100)
+)
+""")
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    room VARCHAR(100) NOT NULL,
+    username VARCHAR(50) NOT NULL,
+    message TEXT NOT NULL,
+    media_url VARCHAR(255),
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+)
+""")
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS health_records (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT NOT NULL,
+    doctor_id INT,
+    record_type VARCHAR(100) NOT NULL,
+    description TEXT,
+    file_path VARCHAR(255) NOT NULL,
+    date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (patient_id) REFERENCES users(id),
+    FOREIGN KEY (doctor_id) REFERENCES users(id)
+)
+""")
 
-        # Create symptom checker history table
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS symptom_checker_history (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
-            symptoms TEXT NOT NULL,
-            age_group VARCHAR(20) NOT NULL,
-            gender VARCHAR(10) NOT NULL,
-            conditions_found TEXT NOT NULL,
-            highest_probability FLOAT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            api_response TEXT,
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )
-        """)
+# Create symptom checker history table
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS symptom_checker_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    symptoms TEXT NOT NULL,
+    age_group VARCHAR(20) NOT NULL,
+    gender VARCHAR(10) NOT NULL,
+    conditions_found TEXT NOT NULL,
+    highest_probability FLOAT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    api_response TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+)
+""")
 
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS prescriptions (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            patient_id INT NOT NULL,
-            doctor_id INT NOT NULL,
-            medicines TEXT NOT NULL,
-            instructions TEXT,
-            diagnosis TEXT,
-            date DATETIME DEFAULT CURRENT_TIMESTAMP,
-            status ENUM('active', 'completed', 'cancelled') DEFAULT 'active',
-            FOREIGN KEY (patient_id) REFERENCES users(id),
-            FOREIGN KEY (doctor_id) REFERENCES users(id)
-        )
-        """)
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS appointments (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            patient_id INT NOT NULL,
-            doctor_id INT NOT NULL,
-            appointment_date DATE NOT NULL,
-            appointment_time TIME NOT NULL,
-            appointment_type ENUM('video', 'chat', 'in_person') DEFAULT 'video',
-            status ENUM('pending', 'scheduled', 'confirmed', 'completed', 'cancelled', 'no_show') DEFAULT 'pending',
-            symptoms TEXT,
-            notes TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            FOREIGN KEY (patient_id) REFERENCES users(id),
-            FOREIGN KEY (doctor_id) REFERENCES users(id)
-        )
-        """)
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS prescriptions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT NOT NULL,
+    doctor_id INT NOT NULL,
+    medicines TEXT NOT NULL,
+    instructions TEXT,
+    diagnosis TEXT,
+    date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('active', 'completed', 'cancelled') DEFAULT 'active',
+    FOREIGN KEY (patient_id) REFERENCES users(id),
+    FOREIGN KEY (doctor_id) REFERENCES users(id)
+)
+""")
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS appointments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT NOT NULL,
+    doctor_id INT NOT NULL,
+    appointment_date DATE NOT NULL,
+    appointment_time TIME NOT NULL,
+    appointment_type ENUM('video', 'chat', 'in_person') DEFAULT 'video',
+    status ENUM('pending', 'scheduled', 'confirmed', 'completed', 'cancelled', 'no_show') DEFAULT 'pending',
+    symptoms TEXT,
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (patient_id) REFERENCES users(id),
+    FOREIGN KEY (doctor_id) REFERENCES users(id)
+)
+""")
 
-        # Create notifications table
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS notifications (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
-            title VARCHAR(255) NOT NULL,
-            message TEXT NOT NULL,
-            type ENUM('appointment_approved', 'appointment_declined', 'appointment_reminder', 'prescription_ready', 'general', 'sos_alert') DEFAULT 'general',
-            is_read BOOLEAN DEFAULT FALSE,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )
-        """)
+# Create notifications table
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS notifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    type ENUM('appointment_approved', 'appointment_declined', 'appointment_reminder', 'prescription_ready', 'general', 'sos_alert') DEFAULT 'general',
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+)
+""")
 
-        # Create SOS alerts table
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS sos_alerts (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            patient_id INT NOT NULL,
-            latitude DECIMAL(10, 8) NULL,
-            longitude DECIMAL(11, 8) NULL,
-            location_error TEXT NULL,
-            status ENUM('active', 'responded', 'resolved') DEFAULT 'active',
-            user_agent TEXT NULL,
-            page_url TEXT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            responded_at DATETIME NULL,
-            resolved_at DATETIME NULL,
-            responding_doctor_id INT NULL,
-            notes TEXT NULL,
-            FOREIGN KEY (patient_id) REFERENCES users(id),
-            FOREIGN KEY (responding_doctor_id) REFERENCES users(id)
-        )
-        """)
+# Create SOS alerts table
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS sos_alerts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT NOT NULL,
+    latitude DECIMAL(10, 8) NULL,
+    longitude DECIMAL(11, 8) NULL,
+    location_error TEXT NULL,
+    status ENUM('active', 'responded', 'resolved') DEFAULT 'active',
+    user_agent TEXT NULL,
+    page_url TEXT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    responded_at DATETIME NULL,
+    resolved_at DATETIME NULL,
+    responding_doctor_id INT NULL,
+    notes TEXT NULL,
+    FOREIGN KEY (patient_id) REFERENCES users(id),
+    FOREIGN KEY (responding_doctor_id) REFERENCES users(id)
+)
+""")
 
-        # Create medicines table
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS medicines (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            name VARCHAR(255) NOT NULL,
-            quantity INT NOT NULL,
-            pharmacy_id INT NOT NULL,
-            added_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (pharmacy_id) REFERENCES users(id)
-        )
-        """)
+# Create medicines table
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS medicines (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    quantity INT NOT NULL,
+    pharmacy_id INT NOT NULL,
+    added_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (pharmacy_id) REFERENCES users(id)
+)
+""")
 
-        # Alter table to add new columns if not exists (for existing installations)
-        alter_queries = [
-            "ALTER TABLE users ADD COLUMN mobile VARCHAR(15) NOT NULL DEFAULT ''",
-            "ALTER TABLE users ADD COLUMN date_of_birth DATE",
-            "ALTER TABLE users ADD COLUMN gender ENUM('Male','Female','Other')",
-            "ALTER TABLE users ADD COLUMN address TEXT",
-            "ALTER TABLE users ADD COLUMN pin_code VARCHAR(10)",
-            "ALTER TABLE users ADD COLUMN health_history TEXT",
-            "ALTER TABLE users ADD COLUMN emergency_contact_name VARCHAR(100)",
-            "ALTER TABLE users ADD COLUMN emergency_contact_number VARCHAR(15)",
-            "ALTER TABLE users ADD COLUMN preferred_language ENUM('English','Hindi','Punjabi') DEFAULT 'English'",
-            "ALTER TABLE users ADD COLUMN description TEXT",
-            "ALTER TABLE users ADD COLUMN specialist VARCHAR(100)",
-            "ALTER TABLE chat_messages ADD COLUMN media_url VARCHAR(255)",
-            "ALTER TABLE appointments MODIFY COLUMN status ENUM('pending', 'scheduled', 'confirmed', 'completed', 'cancelled', 'no_show') DEFAULT 'pending'"
-        ]
-        for query in alter_queries:
-            try:
-                cursor.execute(query)
-            except mysql.connector.Error as err:
-                if err.errno != 1060:  # Duplicate column name
-                    print(f"Error altering table: {err}")
-        conn.commit()
-        cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'doctor'")
-        doctor_count = cursor.fetchone()[0]
-        cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'pharmacy'")
-        pharmacy_count = cursor.fetchone()[0]
-        if doctor_count == 0:
-            dummy_doctors = [
-                ('doctor-1', 'doctor-123', 'doctor', 'Dr. Singh', 'doctor1@example.com', '9876543210', 'Experienced general physician with 10+ years in rural healthcare.', 'General Medicine'),
-                ('doctor-2', 'doctor-231', 'doctor', 'Dr. Patel', 'doctor2@example.com', '9876543211', 'Cardiologist specializing in heart diseases and preventive care.', 'Cardiology'),
-                ('doctor-3', 'doctor-321', 'doctor', 'Dr. Kumar', 'doctor3@example.com', '9876543212', 'Pediatrician focused on child health and vaccinations.', 'Pediatrics')
-            ]
-            cursor.executemany("INSERT INTO users (username, password, role, name, email, mobile, description, specialist) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", dummy_doctors)
-        if pharmacy_count == 0:
-            dummy_pharmacies = [
-                ('pharmacy-1', 'pharm-123', 'pharmacy', 'Nabha Medical Store', 'pharm1@example.com', '9876543213', None, None),
-                ('pharmacy-2', 'pharm-231', 'pharmacy', 'City Pharmacy', 'pharm2@example.com', '9876543214', None, None),
-                ('pharmacy-3', 'pharm-321', 'pharmacy', 'Health Plus', 'pharm3@example.com', '9876543215', None, None)
-            ]
-            cursor.executemany("INSERT INTO users (username, password, role, name, email, mobile, description, specialist) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", dummy_pharmacies)
-        conn.commit()
-        # Update existing doctors with descriptions and specialists
-        update_doctors = [
-            ("Experienced general physician with 10+ years in rural healthcare.", "General Medicine", "doctor-1"),
-            ("Cardiologist specializing in heart diseases and preventive care.", "Cardiology", "doctor-2"),
-            ("Pediatrician focused on child health and vaccinations.", "Pediatrics", "doctor-3")
-        ]
-        cursor.executemany("UPDATE users SET description = %s, specialist = %s WHERE username = %s", update_doctors)
-        conn.commit()
-        cursor.close()
-        conn.close()
-    except Exception as e:
-        print(f"Development database initialization error: {e}")
-        pass
+# Alter table to add new columns if not exists (for existing installations)
+alter_queries = [
+    "ALTER TABLE users ADD COLUMN mobile VARCHAR(15) NOT NULL DEFAULT ''",
+    "ALTER TABLE users ADD COLUMN date_of_birth DATE",
+    "ALTER TABLE users ADD COLUMN gender ENUM('Male','Female','Other')",
+    "ALTER TABLE users ADD COLUMN address TEXT",
+    "ALTER TABLE users ADD COLUMN pin_code VARCHAR(10)",
+    "ALTER TABLE users ADD COLUMN health_history TEXT",
+    "ALTER TABLE users ADD COLUMN emergency_contact_name VARCHAR(100)",
+    "ALTER TABLE users ADD COLUMN emergency_contact_number VARCHAR(15)",
+    "ALTER TABLE users ADD COLUMN preferred_language ENUM('English','Hindi','Punjabi') DEFAULT 'English'",
+    "ALTER TABLE users ADD COLUMN description TEXT",
+    "ALTER TABLE users ADD COLUMN specialist VARCHAR(100)",
+    "ALTER TABLE chat_messages ADD COLUMN media_url VARCHAR(255)",
+    "ALTER TABLE appointments MODIFY COLUMN status ENUM('pending', 'scheduled', 'confirmed', 'completed', 'cancelled', 'no_show') DEFAULT 'pending'"
+]
+for query in alter_queries:
+    try:
+        cursor.execute(query)
+    except mysql.connector.Error as err:
+        if err.errno != 1060:  # Duplicate column name
+            print(f"Error altering table: {err}")
+conn.commit()
+cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'doctor'")
+doctor_count = cursor.fetchone()[0]
+cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'pharmacy'")
+pharmacy_count = cursor.fetchone()[0]
+if doctor_count == 0:
+    dummy_doctors = [
+        ('doctor-1', 'doctor-123', 'doctor', 'Dr. Singh', 'doctor1@example.com', '9876543210', 'Experienced general physician with 10+ years in rural healthcare.', 'General Medicine'),
+        ('doctor-2', 'doctor-231', 'doctor', 'Dr. Patel', 'doctor2@example.com', '9876543211', 'Cardiologist specializing in heart diseases and preventive care.', 'Cardiology'),
+        ('doctor-3', 'doctor-321', 'doctor', 'Dr. Kumar', 'doctor3@example.com', '9876543212', 'Pediatrician focused on child health and vaccinations.', 'Pediatrics')
+    ]
+    cursor.executemany("INSERT INTO users (username, password, role, name, email, mobile, description, specialist) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", dummy_doctors)
+if pharmacy_count == 0:
+    dummy_pharmacies = [
+        ('pharmacy-1', 'pharm-123', 'pharmacy', 'Nabha Medical Store', 'pharm1@example.com', '9876543213', None, None),
+        ('pharmacy-2', 'pharm-231', 'pharmacy', 'City Pharmacy', 'pharm2@example.com', '9876543214', None, None),
+        ('pharmacy-3', 'pharm-321', 'pharmacy', 'Health Plus', 'pharm3@example.com', '9876543215', None, None)
+    ]
+    cursor.executemany("INSERT INTO users (username, password, role, name, email, mobile, description, specialist) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", dummy_pharmacies)
+conn.commit()
+# Update existing doctors with descriptions and specialists
+update_doctors = [
+    ("Experienced general physician with 10+ years in rural healthcare.", "General Medicine", "doctor-1"),
+    ("Cardiologist specializing in heart diseases and preventive care.", "Cardiology", "doctor-2"),
+    ("Pediatrician focused on child health and vaccinations.", "Pediatrics", "doctor-3")
+]
+cursor.executemany("UPDATE users SET description = %s, specialist = %s WHERE username = %s", update_doctors)
+conn.commit()
+cursor.close()
+conn.close()
 
 USERS = {'patient1':{'role':'patient','name':'Ananya','points':120},
          'doctor1':{'role':'doctor','name':'Dr. Singh'}}
@@ -2744,6 +2702,9 @@ def get_api_conditions(symptoms, age, gender):
     return conditions
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    debug = os.environ.get('FLASK_ENV', 'production') == 'development'
-    socketio.run(app, host='0.0.0.0', port=port, debug=debug)
+    # For development
+    if env == 'development':
+        socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    else:
+        # For production, this will be handled by the WSGI server
+        socketio.run(app, host='127.0.0.1', port=5000, debug=False)
