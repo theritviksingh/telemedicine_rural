@@ -48,20 +48,22 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_db_connection():
-    """Get database connection - PostgreSQL for production, MySQL for development"""
     database_url = os.environ.get('DATABASE_URL')
-    
-    if database_url:
-        # Production - PostgreSQL on Render
-        url = urlparse(database_url)
-        return psycopg2.connect(
-            host=url.hostname,
-            port=url.port,
-            database=url.path[1:],  # Remove leading slash
-            user=url.username,
-            password=url.password,
-            cursor_factory=RealDictCursor
-        )
+
+    # Fix Render's postgres:// -> postgresql://
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+    url = urlparse.urlparse(database_url)
+
+    return psycopg2.connect(
+        host=url.hostname,
+        port=url.port,
+        database=url.path[1:],  # Remove leading slash
+        user=url.username,
+        password=url.password,
+        cursor_factory=RealDictCursor
+    )
 
 def execute_query(query, params=None, fetch=False, fetchone=False):
     """Execute database query with proper handling for both MySQL and PostgreSQL"""
