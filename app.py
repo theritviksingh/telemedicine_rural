@@ -49,30 +49,18 @@ def allowed_file(filename):
 
 def get_db_connection():
     """Get database connection - PostgreSQL for production, MySQL for development"""
-    DATABASE_URL = "postgresql://telemedicine_s8km_user:x6qv1bgCEh8qFkuABCmV03XZsSvIj8OF@dpg-d36223ndiees738oknqg-a.oregon-postgres.render.com:5432/telemedicine_s8km"
-
-
-
-
+    database_url = os.environ.get('DATABASE_URL')
     
     if database_url:
         # Production - PostgreSQL on Render
-        url = urlparse.urlparse(DATABASE_URL)
+        url = urlparse(database_url)
         return psycopg2.connect(
-            host=dpg-d36223ndiees738oknqg-a,
-            port=5432,
-            database=telemedicine_s8km,  # Remove leading slash
-            user=telemedicine_s8km_user,
-            password=x6qv1bgCEh8qFkuABCmV03XZsSvIj8OF,
+            host=url.hostname,
+            port=url.port,
+            database=url.path[1:],  # Remove leading slash
+            user=url.username,
+            password=url.password,
             cursor_factory=RealDictCursor
-        )
-    else:
-        # Development - MySQL local
-        return mysql.connector.connect(
-            host=os.environ.get('MYSQL_HOST', 'localhost'),
-            user=os.environ.get('MYSQL_USER', 'root'),
-            password=os.environ.get('MYSQL_PASSWORD', ''),
-            database=os.environ.get('MYSQL_DB', 'telemedicine')
         )
 
 def execute_query(query, params=None, fetch=False, fetchone=False):
