@@ -53,7 +53,7 @@ def get_db_connection():
     
     if database_url:
         # Production - PostgreSQL on Render
-        url = urlparse(database_url)
+        url = urlparse(postgresql://telemedicine_s8km_user:x6qv1bgCEh8qFkuABCmV03XZsSvIj8OF@dpg-d36223ndiees738oknqg-a.oregon-postgres.render.com/telemedicine_s8km)
         return psycopg2.connect(
             host=dpg-d36223ndiees738oknqg-a,
             port=5432,
