@@ -46,12 +46,26 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_db_connection():
-    return mysql.connector.connect(
-        host=app.config['DB_HOST'],
-        user=app.config['DB_USER'],
-        password=app.config['DB_PASSWORD'],
-        database=app.config['DB_NAME']
+    database_url = os.environ.get("DATABASE_URL")
+    if not database_url:
+        raise ValueError("DATABASE_URL is not set in environment variables")
+
+    # Render sometimes gives postgres:// instead of postgresql://
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+    url = urlparse(database_url)
+
+    conn = psycopg2.connect(
+        host=url.hostname,
+        port=url.port,
+        database=url.path[1:],  # remove leading slash
+        user=url.username,
+        password=url.password,
+        cursor_factory=RealDictCursor,
+        sslmode="require"   # 🔑 important for Render
     )
+    return conn
 
 # Initialize database (only for development - remove in production)
 if env == 'development':
