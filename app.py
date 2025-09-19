@@ -18,16 +18,17 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-i
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
+# File upload configuration
+UPLOAD_FOLDER = 'static/uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'webm', 'ogg', 'mp3', 'wav', 'pdf', 'doc', 'docx', 'txt', 'zip', 'rar'}
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Initialize SocketIO
 socketio = SocketIO(app, cors_allowed_origins="*")
-
-# File upload configuration
-UPLOAD_FOLDER = 'static/uploads'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'webm', 'ogg', 'mp3', 'wav', 'pdf', 'doc', 'docx', 'txt', 'zip', 'rar'}
 
 # Create upload folder if it doesn't exist
 if not os.path.exists(UPLOAD_FOLDER):
@@ -69,7 +70,8 @@ def get_db_connection():
                 user=url.username,
                 password=url.password,
                 host=url.hostname,
-                port=url.port
+                port=url.port,
+                sslmode='require'  # Required for Render PostgreSQL
             )
         else:
             # Fallback for local development
@@ -310,7 +312,8 @@ def init_database():
         return False
 
 # Initialize database on startup (only in development)
-if os.environ.get('FLASK_ENV') != 'production':
+# For Render, this should be done via a separate script or database migration
+if os.environ.get('FLASK_ENV') == 'development':
     init_database()
 
 # Routes
@@ -723,6 +726,14 @@ def doctor_appointments():
 @app.route('/about')
 def about():
     return render_template('about.html')
+
+@app.route('/init_db')
+def init_db_route():
+    """Manual database initialization route for Render deployment"""
+    if init_database():
+        return jsonify({'status': 'success', 'message': 'Database initialized successfully'})
+    else:
+        return jsonify({'status': 'error', 'message': 'Database initialization failed'}), 500
 
 @app.route('/profile')
 @login_required
