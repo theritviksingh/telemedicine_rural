@@ -12,12 +12,9 @@ from config import config
 app = Flask(__name__)
 
 # Load configuration based on environment
-env = os.environ.get('FLASK_ENV', 'development')
-app.config.from_object(config[env])
-
-# Configure Flask app
-app.secret_key = app.config['SECRET_KEY']
-app.permanent_session_lifetime = app.config['PERMANENT_SESSION_LIFETIME']
+app.secret_key = os.environ.get("SECRET_KEY", "default_secret_key")
+session_lifetime = int(os.environ.get("SESSION_LIFETIME", 30))  # minutes
+app.permanent_session_lifetime = timedelta(minutes=session_lifetime)
 socketio = SocketIO(app)
 
 @app.template_filter('fromjson')
