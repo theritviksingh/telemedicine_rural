@@ -1,7 +1,9 @@
+
 from flask import Flask, render_template, request, redirect, url_for, jsonify, session, flash
 from datetime import timedelta, datetime, time
 import psycopg2
 import psycopg2.extras
+from psycopg2.extras import RealDictCursor
 from functools import wraps
 from flask_socketio import SocketIO, join_room, leave_room, emit
 import os
@@ -13,7 +15,9 @@ from urllib.parse import urlparse
 # Initialize Flask app
 app = Flask(__name__)
 
-logging.basicConfig(level=logging.DEBUG)
+# Configure logging first
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Configuration for Render
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
@@ -24,11 +28,6 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 UPLOAD_FOLDER = 'static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'webm', 'ogg', 'mp3', 'wav', 'pdf', 'doc', 'docx', 'txt', 'zip', 'rar'}
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 # Initialize SocketIO
 socketio = SocketIO(app, cors_allowed_origins="*")
 
@@ -58,22 +57,31 @@ def login_required(f):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-import logging
-
-logger = logging.getLogger(__name__)
-
 def get_db_connection():
+    """Get PostgreSQL database connection for Render"""
     try:
         database_url = os.environ.get("DATABASE_URL")
         if not database_url:
-            raise RuntimeError("❌ DATABASE_URL not set in Render environment!")
+            logger.error("❌ DATABASE_URL not set in environment!")
+            return None
 
-        conn = psycopg2.connect(database_url, cursor_factory=RealDictCursor, sslmode="require")
+        # Parse the database URL
+        url = urlparse(database_url)
+        conn = psycopg2.connect(
+            database=url.path[1:],
+            user=url.username,
+            password=url.password,
+            host=url.hostname,
+            port=url.port,
+            sslmode="require",
+            cursor_factory=RealDictCursor
+        )
         conn.autocommit = True
+        logger.info("✅ Database connected successfully")
         return conn
     except Exception as e:
-        logging.error(f"❌ Database connection error: {e}")
-        raise
+        logger.error(f"❌ Database connection error: {e}")
+        return None
 
 def init_database():
     """Initialize PostgreSQL database tables for Render"""
@@ -298,9 +306,39 @@ def init_database():
         return False
 
 # Initialize database on startup (only in development)
-# For Render, this should be done via a separate script or database migration
+# For production (Render), database should be initialized manually
 if os.environ.get('FLASK_ENV') == 'development':
-    init_database()
+    try:
+        init_database()
+    except Exception as e:
+        logger.warning(f"Database initialization failed: {e}")
+
+@app.route('/health')
+def health_check():
+    """Health check endpoint for Render"""
+    try:
+        conn = get_db_connection()
+        if conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1")
+            cursor.close()
+            conn.close()
+            return jsonify({"status": "healthy", "database": "connected"}), 200
+        else:
+            return jsonify({"status": "unhealthy", "database": "disconnected"}), 503
+    except Exception as e:
+        return jsonify({"status": "unhealthy", "error": str(e)}), 503
+
+@app.route('/init_db')
+def init_db_route():
+    """Manual database initialization route for Render deployment"""
+    try:
+        if init_database():
+            return jsonify({'status': 'success', 'message': 'Database initialized successfully'})
+        else:
+            return jsonify({'status': 'error', 'message': 'Database initialization failed'}), 500
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': f'Database initialization error: {str(e)}'}), 500
 
 # Routes
 @app.route('/')
@@ -324,7 +362,7 @@ def login():
             return render_template('login.html')
         
         try:
-            cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+            cursor = conn.cursor()
             cursor.execute("""
                 SELECT * FROM users 
                 WHERE username = %s AND password = %s AND role = %s
@@ -428,7 +466,7 @@ def patient_dashboard():
         return render_template('patient_dashboard.html')
     
     try:
-        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cursor = conn.cursor()
         
         # Get recent appointments
         cursor.execute("""
@@ -489,7 +527,7 @@ def doctor_dashboard():
         return render_template('doctor_dashboard.html')
     
     try:
-        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cursor = conn.cursor()
         
         # Get pending appointments
         cursor.execute("""
@@ -551,7 +589,7 @@ def pharmacy_dashboard():
         return render_template('pharmacy_dashboard.html')
     
     try:
-        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        cursor = conn.cursor()
         
         # Get medicine inventory
         cursor.execute("""
@@ -634,7 +672,7 @@ def book_appointment():
     doctors = []
     if conn:
         try:
-            cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+            cursor = conn.cursor()
             cursor.execute("""
                 SELECT id, name, specialist, description
                 FROM users
@@ -662,7 +700,7 @@ def patient_appointments():
     appointments = []
     if conn:
         try:
-            cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+            cursor = conn.cursor()
             cursor.execute("""
                 SELECT a.*, u.name as doctor_name, u.specialist
                 FROM appointments a
@@ -691,7 +729,7 @@ def doctor_appointments():
     appointments = []
     if conn:
         try:
-            cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+            cursor = conn.cursor()
             cursor.execute("""
                 SELECT a.*, u.name as patient_name, u.mobile, u.email
                 FROM appointments a
@@ -728,7 +766,7 @@ def profile():
     user_data = {}
     if conn:
         try:
-            cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+            cursor = conn.cursor()
             cursor.execute("SELECT * FROM users WHERE id = %s", (session['user_id'],))
             user_data = cursor.fetchone()
             cursor.close()
