@@ -60,18 +60,19 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 def get_db_connection():
     try:
         database_url = os.environ.get("DATABASE_URL")
         if not database_url:
-            raise ValueError("❌ DATABASE_URL not set in Render environment")
+            raise RuntimeError("❌ DATABASE_URL not set in Render environment")
 
         conn = psycopg2.connect(database_url, cursor_factory=RealDictCursor)
         conn.autocommit = True
         return conn
     except Exception as e:
         print(f"Database connection error: {e}")
-        return None
+        raise   # <-- don't return None, raise so we see the real cause
 
 def init_database():
     """Initialize PostgreSQL database tables for Render"""
