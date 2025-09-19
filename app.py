@@ -56,14 +56,20 @@ def login_required(f):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 def get_db_connection():
     """Get PostgreSQL database connection for Render"""
     try:
-        # Get database URL from environment (Render provides this)
         database_url = os.environ.get('DATABASE_URL')
         
         if database_url:
-            # Parse the URL for connection parameters
+            # Ensure compatibility
+            if database_url.startswith("postgres://"):
+                database_url = database_url.replace("postgres://", "postgresql://", 1)
+
             url = urlparse(database_url)
             conn = psycopg2.connect(
                 database=url.path[1:],
@@ -71,10 +77,10 @@ def get_db_connection():
                 password=url.password,
                 host=url.hostname,
                 port=url.port,
-                sslmode='require'  # Required for Render PostgreSQL
+                sslmode='require'  # 🔑 Required on Render
             )
         else:
-            # Fallback for local development
+            # Local development fallback
             conn = psycopg2.connect(
                 host=os.environ.get('DB_HOST', 'localhost'),
                 database=os.environ.get('DB_NAME', 'telemedicine'),
