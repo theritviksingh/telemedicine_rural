@@ -13,6 +13,8 @@ from urllib.parse import urlparse
 # Initialize Flask app
 app = Flask(__name__)
 
+logging.basicConfig(level=logging.DEBUG)
+
 # Configuration for Render
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
@@ -60,15 +62,18 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 def get_db_connection():
-    database_url = os.environ.get("DATABASE_URL")
-    if not database_url:
-        raise RuntimeError("❌ DATABASE_URL not set in Render environment!")
+    try:
+        database_url = os.environ.get("DATABASE_URL")
+        if not database_url:
+            raise RuntimeError("❌ DATABASE_URL not set in Render environment!")
 
-    conn = psycopg2.connect(database_url, cursor_factory=RealDictCursor)
-    conn.autocommit = True
-    return conn
+        conn = psycopg2.connect(database_url, cursor_factory=RealDictCursor, sslmode="require")
+        conn.autocommit = True
+        return conn
+    except Exception as e:
+        logging.error(f"❌ Database connection error: {e}")
+        raise
 
 def init_database():
     """Initialize PostgreSQL database tables for Render"""
