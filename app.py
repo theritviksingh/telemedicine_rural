@@ -313,22 +313,6 @@ if os.environ.get('FLASK_ENV') == 'development':
     except Exception as e:
         logger.warning(f"Database initialization failed: {e}")
 
-@app.route('/health')
-def health_check():
-    """Health check endpoint for Render"""
-    try:
-        conn = get_db_connection()
-        if conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT 1")
-            cursor.close()
-            conn.close()
-            return jsonify({"status": "healthy", "database": "connected"}), 200
-        else:
-            return jsonify({"status": "unhealthy", "database": "disconnected"}), 503
-    except Exception as e:
-        return jsonify({"status": "unhealthy", "error": str(e)}), 503
-
 
 
 # Routes
