@@ -329,16 +329,7 @@ def health_check():
     except Exception as e:
         return jsonify({"status": "unhealthy", "error": str(e)}), 503
 
-@app.route('/init_db')
-def init_db_route():
-    """Manual database initialization route for Render deployment"""
-    try:
-        if init_database():
-            return jsonify({'status': 'success', 'message': 'Database initialized successfully'})
-        else:
-            return jsonify({'status': 'error', 'message': 'Database initialization failed'}), 500
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': f'Database initialization error: {str(e)}'}), 500
+
 
 # Routes
 @app.route('/')
