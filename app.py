@@ -57,31 +57,28 @@ def login_required(f):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+import psycopg2
+from psycopg2.extras import RealDictCursor
+import os, logging
+
 def get_db_connection():
-    """Get PostgreSQL database connection for Render"""
     try:
         database_url = os.environ.get("DATABASE_URL")
         if not database_url:
-            logger.error("❌ DATABASE_URL not set in environment!")
-            return None
+            raise RuntimeError("❌ DATABASE_URL not set in Render!")
 
-        # Parse the database URL
-        url = urlparse(database_url)
+        # Force SSL
         conn = psycopg2.connect(
-            database=url.path[1:],
-            user=url.username,
-            password=url.password,
-            host=url.hostname,
-            port=url.port,
-            sslmode="require",
-            cursor_factory=RealDictCursor
+            database_url,
+            cursor_factory=RealDictCursor,
+            sslmode="require"
         )
         conn.autocommit = True
-        logger.info("✅ Database connected successfully")
         return conn
     except Exception as e:
-        logger.error(f"❌ Database connection error: {e}")
+        logging.error(f"❌ Database connection error: {e}")
         return None
+
 
 def init_database():
     """Initialize PostgreSQL database tables for Render"""
