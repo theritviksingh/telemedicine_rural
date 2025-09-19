@@ -6,7 +6,7 @@ from flask_socketio import SocketIO, join_room, leave_room, emit
 import os
 from werkzeug.utils import secure_filename
 import json
-from config import config
+from datetime import timedelta
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -48,6 +48,7 @@ def allowed_file(filename):
 def get_db_connection():
     
     database_url = os.environ.get("DATABASE_URL")
+    
     if not database_url:
         raise ValueError("DATABASE_URL is not set in environment variables")
 
