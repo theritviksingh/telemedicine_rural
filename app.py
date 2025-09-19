@@ -57,26 +57,29 @@ def login_required(f):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-import psycopg2
-from psycopg2.extras import RealDictCursor
-import os, logging
-
 def get_db_connection():
+    """Get PostgreSQL database connection for Render with proper error handling"""
     try:
         database_url = os.environ.get("DATABASE_URL")
         if not database_url:
-            raise RuntimeError("❌ DATABASE_URL not set in Render!")
+            logger.error("❌ DATABASE_URL environment variable not set")
+            return None
 
-        # Force SSL
+        # Connect with SSL requirement for Render
         conn = psycopg2.connect(
             database_url,
             cursor_factory=RealDictCursor,
-            sslmode="require"
+            sslmode="require",
+            connect_timeout=10
         )
         conn.autocommit = True
+        logger.info("✅ Database connection successful")
         return conn
+    except psycopg2.OperationalError as e:
+        logger.error(f"❌ PostgreSQL connection error: {e}")
+        return None
     except Exception as e:
-        logging.error(f"❌ Database connection error: {e}")
+        logger.error(f"❌ Database connection error: {e}")
         return None
 
 
@@ -453,44 +456,61 @@ def patient_dashboard():
         flash('Access denied', 'error')
         return redirect(url_for('index'))
     
+    # Default empty data in case of database issues
+    appointments = []
+    prescriptions = []
+    notifications = []
+    
     conn = get_db_connection()
     if not conn:
-        flash('Database connection error', 'error')
-        return render_template('patient_dashboard.html')
+        flash('⚠️ Database connection issue. Some features may be limited.', 'warning')
+        return render_template('patient_dashboard.html', 
+                             appointments=appointments,
+                             prescriptions=prescriptions,
+                             notifications=notifications)
     
     try:
         cursor = conn.cursor()
         
-        # Get recent appointments
-        cursor.execute("""
-            SELECT a.*, u.name as doctor_name, u.specialist
-            FROM appointments a
-            JOIN users u ON a.doctor_id = u.id
-            WHERE a.patient_id = %s
-            ORDER BY a.appointment_date DESC, a.appointment_time DESC
-            LIMIT 5
-        """, (session['user_id'],))
-        appointments = cursor.fetchall()
+        # Get recent appointments with error handling
+        try:
+            cursor.execute("""
+                SELECT a.*, u.name as doctor_name, u.specialist
+                FROM appointments a
+                JOIN users u ON a.doctor_id = u.id
+                WHERE a.patient_id = %s
+                ORDER BY a.appointment_date DESC, a.appointment_time DESC
+                LIMIT 5
+            """, (session['user_id'],))
+            appointments = cursor.fetchall() or []
+        except Exception as e:
+            logger.warning(f"Could not fetch appointments: {e}")
         
-        # Get recent prescriptions
-        cursor.execute("""
-            SELECT p.*, u.name as doctor_name
-            FROM prescriptions p
-            JOIN users u ON p.doctor_id = u.id
-            WHERE p.patient_id = %s
-            ORDER BY p.date DESC
-            LIMIT 5
-        """, (session['user_id'],))
-        prescriptions = cursor.fetchall()
+        # Get recent prescriptions with error handling
+        try:
+            cursor.execute("""
+                SELECT p.*, u.name as doctor_name
+                FROM prescriptions p
+                JOIN users u ON p.doctor_id = u.id
+                WHERE p.patient_id = %s
+                ORDER BY p.date DESC
+                LIMIT 5
+            """, (session['user_id'],))
+            prescriptions = cursor.fetchall() or []
+        except Exception as e:
+            logger.warning(f"Could not fetch prescriptions: {e}")
         
-        # Get unread notifications
-        cursor.execute("""
-            SELECT * FROM notifications
-            WHERE user_id = %s AND is_read = FALSE
-            ORDER BY created_at DESC
-            LIMIT 5
-        """, (session['user_id'],))
-        notifications = cursor.fetchall()
+        # Get unread notifications with error handling
+        try:
+            cursor.execute("""
+                SELECT * FROM notifications
+                WHERE user_id = %s AND is_read = FALSE
+                ORDER BY created_at DESC
+                LIMIT 5
+            """, (session['user_id'],))
+            notifications = cursor.fetchall() or []
+        except Exception as e:
+            logger.warning(f"Could not fetch notifications: {e}")
         
         cursor.close()
         conn.close()
@@ -502,10 +522,13 @@ def patient_dashboard():
         
     except Exception as e:
         logger.error(f"Patient dashboard error: {e}")
-        flash('Error loading dashboard', 'error')
+        flash('⚠️ Some dashboard features may be limited due to database issues.', 'warning')
         if conn:
             conn.close()
-        return render_template('patient_dashboard.html')
+        return render_template('patient_dashboard.html', 
+                             appointments=appointments,
+                             prescriptions=prescriptions,
+                             notifications=notifications)
 
 @app.route('/doctor_dashboard')
 @login_required
@@ -744,35 +767,136 @@ def doctor_appointments():
 def about():
     return render_template('about.html')
 
-@app.route('/init_db')
+@app.route('/health')
+def health_check():
+    """Health check endpoint for Render"""
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'status': 'error', 'message': 'Database connection failed'}), 500
+        
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1")
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        
+        if result:
+            return jsonify({'status': 'healthy', 'database': 'connected'})
+        else:
+            return jsonify({'status': 'error', 'message': 'Database query failed'}), 500
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
 @app.route('/init_db')
 def init_db():
+    """Database initialization endpoint"""
     conn = get_db_connection()
     if not conn:
-        return "❌ Cannot connect to database"
+        return "❌ Cannot connect to database.", 500
 
     try:
         cursor = conn.cursor()
+        
+        # Create users table if it doesn't exist
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
                 username VARCHAR(50) UNIQUE NOT NULL,
                 password VARCHAR(255) NOT NULL,
-                role VARCHAR(20) NOT NULL,
-                name VARCHAR(100)
-            );
+                role VARCHAR(20) NOT NULL CHECK (role IN ('doctor', 'patient', 'pharmacy')),
+                name VARCHAR(100),
+                email VARCHAR(100),
+                mobile VARCHAR(15) DEFAULT '',
+                date_of_birth DATE,
+                gender VARCHAR(10) CHECK (gender IN ('Male', 'Female', 'Other')),
+                address TEXT,
+                pin_code VARCHAR(10),
+                health_history TEXT,
+                emergency_contact_name VARCHAR(100),
+                emergency_contact_number VARCHAR(15),
+                preferred_language VARCHAR(20) DEFAULT 'English',
+                description TEXT,
+                specialist VARCHAR(100),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
         """)
-        # Optional: insert test user
+        
+        # Create other essential tables
         cursor.execute("""
-            INSERT INTO users (username, password, role, name)
-            SELECT 'patient1','password123','patient','Test Patient'
-            WHERE NOT EXISTS (SELECT 1 FROM users WHERE username='patient1');
+            CREATE TABLE IF NOT EXISTS appointments (
+                id SERIAL PRIMARY KEY,
+                patient_id INTEGER NOT NULL,
+                doctor_id INTEGER NOT NULL,
+                appointment_date DATE NOT NULL,
+                appointment_time TIME NOT NULL,
+                appointment_type VARCHAR(20) DEFAULT 'video',
+                status VARCHAR(20) DEFAULT 'pending',
+                symptoms TEXT,
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (doctor_id) REFERENCES users(id) ON DELETE CASCADE
+            )
         """)
+        
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS prescriptions (
+                id SERIAL PRIMARY KEY,
+                patient_id INTEGER NOT NULL,
+                doctor_id INTEGER NOT NULL,
+                medicines TEXT NOT NULL,
+                instructions TEXT,
+                diagnosis TEXT,
+                date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                status VARCHAR(20) DEFAULT 'active',
+                FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY (doctor_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
+        
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS notifications (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                title VARCHAR(255) NOT NULL,
+                message TEXT NOT NULL,
+                type VARCHAR(30) DEFAULT 'general',
+                is_read BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )
+        """)
+
+        # Insert test users if they don't exist
+        cursor.execute("""
+            INSERT INTO users (username, password, role, name, email)
+            SELECT 'patient1','password123','patient','Test Patient','patient@demo.com'
+            WHERE NOT EXISTS (SELECT 1 FROM users WHERE username='patient1')
+        """)
+        
+        cursor.execute("""
+            INSERT INTO users (username, password, role, name, email, specialist)
+            SELECT 'dr_smith','password123','doctor','Dr. Smith','doctor@demo.com','General Medicine'
+            WHERE NOT EXISTS (SELECT 1 FROM users WHERE username='dr_smith')
+        """)
+        
+        cursor.execute("""
+            INSERT INTO users (username, password, role, name, email)
+            SELECT 'pharmacy1','password123','pharmacy','Demo Pharmacy','pharmacy@demo.com'
+            WHERE NOT EXISTS (SELECT 1 FROM users WHERE username='pharmacy1')
+        """)
+
         cursor.close()
         conn.close()
+        logger.info("✅ Database initialized successfully")
         return "✅ Database initialized successfully!"
     except Exception as e:
-        return f"❌ Error initializing database: {e}"
+        logger.error(f"Database initialization error: {e}")
+        return f"❌ Error initializing database: {e}", 500
 
 
 @app.route('/profile')
@@ -853,10 +977,8 @@ def handle_message(data):
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     if os.environ.get('FLASK_ENV') == 'production':
-        # Production mode
+        # Production mode - use socketio for production
         socketio.run(app, host='0.0.0.0', port=port, debug=False)
     else:
         # Development mode
         socketio.run(app, host='0.0.0.0', port=port, debug=True)
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
