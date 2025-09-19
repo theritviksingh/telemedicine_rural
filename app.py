@@ -344,24 +344,24 @@ def init_db_route():
 @app.route('/')
 def index():
     return render_template('index.html')
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         role = request.form.get('role')
-        
+
         if not username or not password or not role:
-            flash('Please fill in all fields', 'error')
+            flash('⚠️ Please fill in all fields', 'error')
             return render_template('login.html')
-        
-        conn = get_db_connection()
-        if not conn:
-            flash('Database connection error', 'error')
-            return render_template('login.html')
-        
+
+        conn = None
         try:
+            conn = get_db_connection()
+            if not conn:
+                flash('❌ Database connection error', 'error')
+                return render_template('login.html')
+
             cursor = conn.cursor()
             cursor.execute("""
                 SELECT * FROM users 
@@ -370,15 +370,14 @@ def login():
             
             user = cursor.fetchone()
             cursor.close()
-            conn.close()
-            
+
             if user:
                 session.permanent = True
                 session['user_id'] = user['id']
                 session['username'] = user['username']
                 session['role'] = user['role']
                 session['name'] = user['name']
-                
+
                 # Redirect based on role
                 if role == 'patient':
                     return redirect(url_for('patient_dashboard'))
@@ -386,16 +385,22 @@ def login():
                     return redirect(url_for('doctor_dashboard'))
                 elif role == 'pharmacy':
                     return redirect(url_for('pharmacy_dashboard'))
+                else:
+                    flash('Unknown role selected', 'error')
+                    return render_template('login.html')
             else:
-                flash('Invalid credentials', 'error')
-                
+                flash('❌ Invalid credentials', 'error')
+
         except Exception as e:
-            logger.error(f"Login error: {e}")
-            flash('Login error occurred', 'error')
+            logger.error(f"Login error: {e}", exc_info=True)
+            flash(f'❌ Login error occurred: {e}', 'error')
+
+        finally:
             if conn:
                 conn.close()
-    
+
     return render_template('login.html')
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
