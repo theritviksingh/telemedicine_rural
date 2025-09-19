@@ -61,38 +61,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 def get_db_connection():
-    """Get PostgreSQL database connection for Render"""
     try:
-        database_url = os.environ.get('DATABASE_URL')
-        
-        if database_url:
-            # Ensure compatibility
-            if database_url.startswith("postgres://"):
-                database_url = database_url.replace("postgres://", "postgresql://", 1)
+        database_url = os.environ.get("DATABASE_URL")
+        if not database_url:
+            raise ValueError("❌ DATABASE_URL not set in Render environment")
 
-            url = urlparse(database_url)
-            conn = psycopg2.connect(
-                database=url.path[1:],
-                user=url.username,
-                password=url.password,
-                host=url.hostname,
-                port=url.port,
-                sslmode='require'  # 🔑 Required on Render
-            )
-        else:
-            # Local development fallback
-            conn = psycopg2.connect(
-                host=os.environ.get('DB_HOST', 'localhost'),
-                database=os.environ.get('DB_NAME', 'telemedicine'),
-                user=os.environ.get('DB_USER', 'postgres'),
-                password=os.environ.get('DB_PASSWORD', 'password'),
-                port=os.environ.get('DB_PORT', '5432')
-            )
-        
+        conn = psycopg2.connect(database_url, cursor_factory=RealDictCursor)
         conn.autocommit = True
         return conn
     except Exception as e:
-        logger.error(f"Database connection error: {e}")
+        print(f"Database connection error: {e}")
         return None
 
 def init_database():
