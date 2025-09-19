@@ -745,153 +745,35 @@ def about():
     return render_template('about.html')
 
 @app.route('/init_db')
+@app.route('/init_db')
 def init_db():
     conn = get_db_connection()
     if not conn:
-        return "❌ Cannot connect to database."
+        return "❌ Cannot connect to database"
 
     try:
         cursor = conn.cursor()
-        
-        # Create users table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
                 username VARCHAR(50) UNIQUE NOT NULL,
                 password VARCHAR(255) NOT NULL,
-                role VARCHAR(20) NOT NULL CHECK (role IN ('doctor', 'patient', 'pharmacy')),
-                name VARCHAR(100),
-                email VARCHAR(100),
-                mobile VARCHAR(15) DEFAULT '',
-                date_of_birth DATE,
-                gender VARCHAR(10) CHECK (gender IN ('Male', 'Female', 'Other')),
-                address TEXT,
-                pin_code VARCHAR(10),
-                health_history TEXT,
-                emergency_contact_name VARCHAR(100),
-                emergency_contact_number VARCHAR(15),
-                preferred_language VARCHAR(20) DEFAULT 'English',
-                description TEXT,
-                specialist VARCHAR(100),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                role VARCHAR(20) NOT NULL,
+                name VARCHAR(100)
             );
         """)
-        
-        # Create chat_messages table
+        # Optional: insert test user
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS chat_messages (
-                id SERIAL PRIMARY KEY,
-                room VARCHAR(100) NOT NULL,
-                username VARCHAR(50) NOT NULL,
-                message TEXT NOT NULL,
-                media_url VARCHAR(255),
-                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-        """)
-        
-        # Create health_records table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS health_records (
-                id SERIAL PRIMARY KEY,
-                patient_id INTEGER NOT NULL,
-                doctor_id INTEGER,
-                record_type VARCHAR(100) NOT NULL,
-                description TEXT,
-                file_path VARCHAR(255) NOT NULL,
-                date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE,
-                FOREIGN KEY (doctor_id) REFERENCES users(id) ON DELETE SET NULL
-            );
-        """)
-        
-        # Create appointments table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS appointments (
-                id SERIAL PRIMARY KEY,
-                patient_id INTEGER NOT NULL,
-                doctor_id INTEGER NOT NULL,
-                appointment_date DATE NOT NULL,
-                appointment_time TIME NOT NULL,
-                appointment_type VARCHAR(20) DEFAULT 'video' CHECK (appointment_type IN ('video', 'chat', 'in_person')),
-                status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'scheduled', 'confirmed', 'completed', 'cancelled', 'no_show')),
-                symptoms TEXT,
-                notes TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE,
-                FOREIGN KEY (doctor_id) REFERENCES users(id) ON DELETE CASCADE
-            );
-        """)
-        
-        # Create prescriptions table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS prescriptions (
-                id SERIAL PRIMARY KEY,
-                patient_id INTEGER NOT NULL,
-                doctor_id INTEGER NOT NULL,
-                medicines TEXT NOT NULL,
-                instructions TEXT,
-                diagnosis TEXT,
-                date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'completed', 'cancelled')),
-                FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE,
-                FOREIGN KEY (doctor_id) REFERENCES users(id) ON DELETE CASCADE
-            );
-        """)
-        
-        # Create notifications table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS notifications (
-                id SERIAL PRIMARY KEY,
-                user_id INTEGER NOT NULL,
-                title VARCHAR(255) NOT NULL,
-                message TEXT NOT NULL,
-                type VARCHAR(30) DEFAULT 'general' CHECK (type IN ('appointment_approved', 'appointment_declined', 'appointment_reminder', 'prescription_ready', 'general', 'sos_alert')),
-                is_read BOOLEAN DEFAULT FALSE,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-            );
-        """)
-        
-        # Create medicines table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS medicines (
-                id SERIAL PRIMARY KEY,
-                name VARCHAR(255) NOT NULL,
-                quantity INTEGER NOT NULL,
-                pharmacy_id INTEGER NOT NULL,
-                added_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (pharmacy_id) REFERENCES users(id) ON DELETE CASCADE
-            );
-        """)
-
-        # Insert test users (only if not exists)
-        cursor.execute("""
-            INSERT INTO users (username, password, role, name, email, mobile, description, specialist)
-            SELECT 'patient1','password123','patient','Test Patient','patient@demo.com','9876543210','Demo patient account',NULL
+            INSERT INTO users (username, password, role, name)
+            SELECT 'patient1','password123','patient','Test Patient'
             WHERE NOT EXISTS (SELECT 1 FROM users WHERE username='patient1');
         """)
-        
-        cursor.execute("""
-            INSERT INTO users (username, password, role, name, email, mobile, description, specialist)
-            SELECT 'dr_smith','password123','doctor','Dr. John Smith','dr.smith@demo.com','1234567890','Test doctor account','General Medicine'
-            WHERE NOT EXISTS (SELECT 1 FROM users WHERE username='dr_smith');
-        """)
-        
-        cursor.execute("""
-            INSERT INTO users (username, password, role, name, email, mobile, description, specialist)
-            SELECT 'pharmacy1','password123','pharmacy','Demo Pharmacy','pharmacy@demo.com','5555555555','Test pharmacy account',NULL
-            WHERE NOT EXISTS (SELECT 1 FROM users WHERE username='pharmacy1');
-        """)
-
         cursor.close()
         conn.close()
-        return "✅ Database initialized successfully with all tables and test users!"
+        return "✅ Database initialized successfully!"
     except Exception as e:
         return f"❌ Error initializing database: {e}"
 
-    
 
 @app.route('/profile')
 @login_required
